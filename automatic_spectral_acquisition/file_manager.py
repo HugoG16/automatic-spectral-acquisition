@@ -1,5 +1,5 @@
 import csv
-
+import os
 from automatic_spectral_acquisition.constants import *
 
 class FileManager:
@@ -21,6 +21,13 @@ class FileManager:
         self.output_directory = output_directory
         self.temp_directory = temp_directory
         self.output_header = output_header
+        
+        # Create directories if they do not exist
+        log_buffer = []
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+        if not os.path.exists(temp_directory):
+            os.makedirs(temp_directory)
         
         self.output_file_directory = f'{output_directory}/{output_file}'
         self.log_file_directory = f'{temp_directory}/{log_file}'

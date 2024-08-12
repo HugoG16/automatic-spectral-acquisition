@@ -161,7 +161,7 @@ class Core:
         wavelengths = self.create_wavelengths(start, end, step)
         for wl in wavelengths:
             self.perform_measurement(wl, number_of_measurements)
-        self.file_manager.save_data()
+        self.file_manager.save_buffer()
 
         
     def record_single(self, 
@@ -175,7 +175,7 @@ class Core:
         """
         self.check_parameters_single(wavelength, number_of_measurements)
         self.perform_measurement(wavelength, number_of_measurements)
-        self.file_manager.save_data()
+        self.file_manager.save_buffer()
         
     
     ################################################## not complete ##################################################

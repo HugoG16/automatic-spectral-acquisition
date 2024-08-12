@@ -1,8 +1,8 @@
-./output
-./temp
-**/__pycache__
-**.csv
-**.txt
-**.lock
-tests/**
+**/__pycache__/
+**/output/
+**/temp/
+
+tests/
+
+*.lock
 notes.md

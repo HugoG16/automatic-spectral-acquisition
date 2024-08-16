@@ -23,7 +23,6 @@ class FileManager:
         self.output_header = output_header
         
         # Create directories if they do not exist
-        log_buffer = []
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
         if not os.path.exists(temp_directory):

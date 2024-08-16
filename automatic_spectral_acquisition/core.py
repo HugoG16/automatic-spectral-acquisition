@@ -1,5 +1,5 @@
 import logging 
-import sys
+
 from rich import print
 
 from automatic_spectral_acquisition.arduino import Arduino
@@ -7,14 +7,8 @@ from automatic_spectral_acquisition.oscilloscope import Oscilloscope
 from automatic_spectral_acquisition.file_manager import FileManager
 from automatic_spectral_acquisition.config import Config
 from automatic_spectral_acquisition.constants import *
+from helper import error_message
 
-def error_message(exception_type:str, message:str) -> None:
-    if DEBUG:
-        exception_class = globals().get('__builtins__').get(exception_type, Exception)
-        raise exception_class(message)
-    else:
-        print(f'[bold red]{exception_type}:[/bold red] {message}')
-        sys.exit()
 
 class Core:
     ################################################## not complete ##################################################

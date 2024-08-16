@@ -16,6 +16,16 @@ def create_config_subcommands() -> Typer:
         core = Core()
         core.config_delete()
     
+    @app.command()
+    def list():
+        core = Core()
+        core.config_list()
+    
+    @app.command()
+    def calibrate():
+        core = Core()
+        core.config_calibrate()
+    
     return app
     
     

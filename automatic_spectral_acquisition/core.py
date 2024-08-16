@@ -183,6 +183,11 @@ class Core:
     def config_delete(self) -> None:
         print('config_delete - not implemented')
     
+    def congif_list(self) -> None:
+        print('config_list - not implemented')
+        
+    def config_calibrate(self) -> None:
+        print('config_calibrate - not implemented')
     
     def connect_arduino(self) -> None:
         print('Connect Arduino - not implemented')
@@ -203,4 +208,6 @@ class Core:
         
         
     def finalize(self) -> None:
+        # close connections
+        # go to known position on arduino
         print('Finalize - not implemented')

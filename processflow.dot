@@ -1,0 +1,82 @@
+digraph G {
+    // concentrate=true
+    Start [fillcolor="#333379" fontcolor=white style=filled]
+    ".Load config" [fillcolor="#333379" fontcolor=white style=filled]
+    ".Connect arduino" [fillcolor="#333379" fontcolor=white style=filled]
+    ".Connect oscilloscope" [fillcolor="#333379" fontcolor=white style=filled]
+    ".Take measurements" [fillcolor="#333379" fontcolor=white style=filled]
+    ".Save data" [fillcolor="#333379" fontcolor=white style=filled]
+    ".Terminate connection arduino" [fillcolor="#333379" fontcolor=white style=filled]
+    ".Terminate connection oscilloscope" [fillcolor="#333379" fontcolor=white style=filled]
+    "End" [fillcolor="#333379" fontcolor=white style=filled]
+
+    subgraph cluster_config {
+        label="Create connection";
+        style=filled;
+		color=lightgrey;
+        
+        "Config exists?"[shape=diamond]
+        "Load config"
+        "Create config"
+        "Save config"
+    }
+
+
+    subgraph cluster_measurements {
+        label="Take measurements";
+        style=filled;
+		color=lightgrey;
+
+        "Change wavelength"
+        "Read oscilloscope"
+        "Add to buffer"
+        "Finalized?"[shape=diamond]
+    }
+
+
+    subgraph cluster_read_oscilloscope {
+        label="Read oscilloscope";
+        style=filled;
+        color=lightgrey;
+
+        "Adjust oscilloscope"
+        "Send request (oscilloscope)"
+        "Await completion (oscilloscope)"
+        "Comunicate completion (oscilloscope)"
+    }
+
+    subgraph cluster_change_wavelength {
+        label="Change wavelength";
+        style=filled;
+        color=lightgrey;
+        
+        "Needs calibration first" [shape=rectangle fillcolor="#f6c7c7" style=filled]
+        "Send request (arduino)"
+        "Await completion (arduino)"
+        "Comunicate completion (arduino)"
+    }
+
+    Start -> ".Load config" -> ".Connect arduino" -> ".Connect oscilloscope" -> ".Take measurements"
+    -> ".Save data" -> ".Terminate connection arduino" -> ".Terminate connection oscilloscope" -> "End"
+
+    ".Load config" -> "Config exists?"
+    "Config exists?" -> "Load config" [label=yes]
+    "Config exists?" -> "Create config" [label=no]
+    "Create config" -> "Save config" -> "Load config" 
+    "Load config" -> ".Load config"
+
+    ".Take measurements" -> "Change wavelength"
+    "Change wavelength" -> "Read oscilloscope" -> 
+    "Add to buffer" -> "Finalized?"
+    "Change wavelength" -> "Send request (arduino)"
+    "Read oscilloscope" -> "Adjust oscilloscope"
+    "Finalized?" -> "Change wavelength" [label=no]
+    "Finalized?" -> ".Take measurements"[label=yes]
+    
+    "Adjust oscilloscope" -> "Send request (oscilloscope)" 
+    -> "Await completion (oscilloscope)" -> "Comunicate completion (oscilloscope)"
+
+    "Send request (arduino)" -> "Await completion (arduino)"
+    -> "Comunicate completion (arduino)"
+
+}

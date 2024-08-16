@@ -1,13 +1,14 @@
 import logging 
+import os
 
 from rich import print
 
 from automatic_spectral_acquisition.arduino import Arduino
 from automatic_spectral_acquisition.oscilloscope import Oscilloscope
 from automatic_spectral_acquisition.file_manager import FileManager
-from automatic_spectral_acquisition.config import Config
+from automatic_spectral_acquisition.config import ConfigHandler
 from automatic_spectral_acquisition.constants import *
-from helper import error_message
+from automatic_spectral_acquisition.helper import error_message, info_message
 
 
 class Core:
@@ -17,17 +18,23 @@ class Core:
                  output_file:str=OUTPUT_FILE,
                  temp_directory:str=TEMP_DIRECTORY,
                  log_file:str=LOG_FILE,
-                 output_header:list[str]=['wavelength(nm)', 'voltage(mV)', 'uncertainty(mV)']) -> None:
+                 output_header:list[str]=['wavelength(nm)', 'voltage(mV)', 'uncertainty(mV)'],
+                 arduino_port:str|None=None,
+                 oscilloscope_port:str|None=None,
+                 m:float|None=None,
+                 c:float|None=None,
+                 wavelengths:list[float]=None,
+                 positions:list[float]=None) -> None:
 
-        
         self.file_manager = FileManager(output_directory, output_file, temp_directory, log_file, output_header)
-        
-        
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s - %(levelname)s - %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S',
                             filename=self.file_manager.log_file_directory,
                             filemode='w')
+        
+        self.config_handler = ConfigHandler(arduino_port, oscilloscope_port, m, c, wavelengths, positions)
+        
     ################################################## not complete ##################################################
     
     
@@ -178,16 +185,34 @@ class Core:
     
     def config_create(self) -> None:
         print('config_create - not implemented')
-    
+        
+        self.config_handler = ConfigHandler(arduino_port='test1',
+                                            oscilloscope_port='test2',
+                                            m=1,
+                                            c=2)
+        
+        self.config_handler.save_config()
+        
     
     def config_delete(self) -> None:
-        print('config_delete - not implemented')
-    
-    def congif_list(self) -> None:
-        print('config_list - not implemented')
+        if not self.config_handler.check_config_exists():
+            info_message('No configuration file found.', 'Information')
+            return
+        os.remove(f'{TEMP_DIRECTORY}/{CONFIG_FILE}')
+        info_message('Configuration file deleted.', 'Information')
+        
+
+    def config_list(self) -> None:
+        if not self.config_handler.check_config_exists():
+            info_message('No configuration file found.', 'Information')
+            return
+        self.config_handler.load_config()
+        print(self.config_handler)
+        
         
     def config_calibrate(self) -> None:
         print('config_calibrate - not implemented')
+    
     
     def connect_arduino(self) -> None:
         print('Connect Arduino - not implemented')
@@ -200,7 +225,12 @@ class Core:
     def initialize(self) -> None: # deals with connections and basic setup 
         print('\nInitialize - not implemented')
         
-        Config()
+        if self.config_handler.check_config_exists():
+            self.config_handler.load_config()
+        else:
+            self.config_create()
+            self.config_handler.save_config()
+        
         self.connect_arduino()
         self.connect_oscilloscope()
         

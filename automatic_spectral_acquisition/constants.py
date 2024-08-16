@@ -1,6 +1,6 @@
 ############################# Debug optons #############################
 DEBUG:bool = False # Changes how exceptions are dealt with.
-INGORE_CONNECTIONS:bool = True # Ignore connections
+IGNORE_CONNECTIONS:bool = True # Ignore connections
 
 
 ############################# Arduino connection #############################
@@ -21,4 +21,5 @@ OUTPUT_DIRECTORY:str = 'automatic_spectral_acquisition/output'
 TEMP_DIRECTORY:str = 'automatic_spectral_acquisition/temp'
 OUTPUT_FILE:str = 'output.csv'
 LOG_FILE:str = 'log.txt'
+CONFIG_FILE:str = 'config.pkl'
 

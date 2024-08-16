@@ -27,7 +27,7 @@ class ArduinoStateMachine(StateMachine):
     
     # Define transition actions
     def on_connect(self, *args, **kwargs):
-        if INGORE_CONNECTIONS:
+        if IGNORE_CONNECTIONS:
             return
         
         # Check if config_handler is passed

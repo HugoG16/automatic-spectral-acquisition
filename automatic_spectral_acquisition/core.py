@@ -1,5 +1,6 @@
 import logging 
 import os
+import signal
 
 from rich import print
 import pyinputplus as pyin
@@ -26,18 +27,24 @@ class Core:
                  c:float|None=None,
                  wavelengths:list[float]=None,
                  positions:list[float]=None) -> None:
-
+        
+        # Catch interrupt signal to make sure the program ends correctly
+        signal.signal(signal.SIGINT, self.interrupt_handler)
+        
+        # Create file_manager instance
         self.file_manager = FileManager(output_directory, output_file, temp_directory, log_file, output_header)
+        
+        # Setup logging
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s - %(levelname)s - %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S',
                             filename=self.file_manager.log_file_directory,
                             filemode='w')
         
+        # create the rest of the class instances
         self.config_handler = ConfigHandler(arduino_port, oscilloscope_port, m, c, wavelengths, positions)
         
     ################################################## not complete ##################################################
-    
     
     @staticmethod
     def check_parameters_spectrum(start: float, end: float, step: float, number_of_measurements: int) -> None:
@@ -79,7 +86,6 @@ class Core:
         if number_of_measurements <= 0:
             error_message('ValueError', 'Number of measurements must be greater than 0.')
 
-
     @staticmethod
     def check_parameters_single(wavelength: float, number_of_measurements: int) -> None:
         """Check if the parameters for a single measurement are valid.
@@ -108,7 +114,6 @@ class Core:
         if number_of_measurements <= 0:
             error_message('ValueError', 'Number of measurements must be greater than 0.')
 
-
     @staticmethod
     def create_wavelengths(start: float, end: float, step: float) -> None:
         """Create a list of wavelengths.
@@ -135,7 +140,12 @@ class Core:
             current_wavelength += step
         return wavelengths
 
-
+    def interrupt_handler(self, signum, frame) -> None:
+        """Interrupt handler to stop the program safely."""
+        info_message('Interrupt signal received. Exiting...', 'Exit')
+        self.cli_finalize()
+        exit()
+    
     def perform_measurement(self, 
                             wavelength:float, 
                             number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
@@ -145,15 +155,12 @@ class Core:
         # y, yerr = oscilloscope.take_measurement()
         # file_manager.add_buffer([wl, y, terr])
     
-    
     def connect_arduino(self) -> None:
         print('Connect Arduino - not implemented')
-        
-        
+         
     def connect_oscilloscope(self) -> None:
         print('Connect Oscilloscope - not implemented')
         
-
     def record_spectrum(self, 
                         start:float, 
                         end:float, 
@@ -172,7 +179,7 @@ class Core:
         for wl in wavelengths:
             self.perform_measurement(wl, number_of_measurements)
         self.file_manager.save_buffer()
-
+    
     def get_arduino_port(self) -> str:
         ports = self.config_handler.list_serial_ports()
         
@@ -196,7 +203,7 @@ class Core:
             error_message('Error', 'Port not valid.')
             
         return arduino_port
-    
+     
     def get_oscilloscope_port(self) -> str:
         instruments = self.config_handler.list_pyvisa_instruments()
         if len(instruments) == 0:
@@ -227,7 +234,6 @@ class Core:
         self.perform_measurement(wavelength, number_of_measurements)
         self.file_manager.save_buffer()
     
-    
     def cli_config_create(self) -> None:
         # get arduino port
         if IGNORE_CONNECTIONS:
@@ -255,20 +261,18 @@ class Core:
         self.config_handler = ConfigHandler(arduino_port=arduino_port,
                                             oscilloscope_port=oscilloscope_port)
         
-        # save config hanfler
+        # save config handler
         self.config_handler.save_config()
         
         # calibrate
         self.cli_config_calibrate()
-        
-    
+           
     def cli_config_delete(self) -> None:
         if not self.config_handler.check_config_exists():
             info_message('No configuration file found.', 'Information')
             return
         os.remove(f'{TEMP_DIRECTORY}/{CONFIG_FILE}')
-        info_message('Configuration file deleted.', 'Information')
-        
+        info_message('Configuration file deleted.', 'Information')       
 
     def cli_config_list(self) -> None:
         if not self.config_handler.check_config_exists():
@@ -277,23 +281,28 @@ class Core:
         self.config_handler.load_config()
         print(self.config_handler)
         
-        
     def cli_config_calibrate(self) -> None:
         if self.config_handler.check_config_exists():
             self.config_handler.load_config()
         else:
             error_message('Error', 'No configuration file found. Use "spectral config create".')
 
-        print('Calibrate - not implemented')
+        info_message('Starting calibration...', 'Information')
+        wavelengths = [] 
+        for position in CALIBRATION_POSITIONS:
+            print(f'Moving motor to position {position} - Not implemented...')
+            
+            wavelength = pyin.inputFloat(prompt='Enter the wavelength for the current position: ',
+                                         min=WAVELENGTH_MIN, max=WAVELENGTH_MAX)
+
+            wavelengths.append(wavelength)
         
-        self.config_handler.config.m = 1
-        self.config_handler.config.c = 0
-        
+        self.config_handler.calibrate(wavelengths, CALIBRATION_POSITIONS)
         self.config_handler.save_config()
     
     def cli_initialize(self) -> None: # deals with connections and basic setup 
         print('\nInitialize - not implemented')
-        
+                
         if self.config_handler.check_config_exists():
             self.config_handler.load_config()
         else:
@@ -305,8 +314,9 @@ class Core:
         
         print('End Initialize\n')
         
-        
     def cli_finalize(self) -> None:
-        # close connections
-        # go to known position on arduino
         print('Finalize - not implemented')
+        print('> close connections if necessary - not implemented')
+        print('> save and close files if necessary - not implemented')
+        print('> go to know position - not implemented')
+        

@@ -19,7 +19,7 @@ A schematic of the setup:
 
 A initial calibration is necessary for setting the `DEFAULT_POSITION` (default=0) and `CALIBRATION_POSITIONS` in `automatic_spectral_acquisition\constants.py`. This calibration has to be done manually for now, and requires the user to choose a set of points that will be used for further calibrations:
  1. Define a default position and a default wavelength. Ideally `DEFAULT_POSITION=0` and a wavelength in the middle of the available range, e.g., 650 nm.
- 2. Choose a set of wavelengths (e.g.: [250, 450, 650, 750, 950] nm)
+ 2. Choose a set of wavelengths (e.g.: [350, 500, 650, 800, 950] nm)
  3. Manually set the monochromator to the default wavelength and start the Arduino code.
  3. Find the associated position by trial and error. Use this values to populate `CALIBRATION_POSITIONS`.
 

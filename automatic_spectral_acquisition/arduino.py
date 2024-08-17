@@ -47,7 +47,6 @@ class ArduinoStateMachine(StateMachine):
         except serial.SerialException:
             error_message('SerialException', f'Could not connect to arduino on port {arduino_port}.')
         
-        
     def on_request(self, *args, **kwargs):
         position:float = kwargs.get('position')
         if not isinstance(position, float):
@@ -63,7 +62,6 @@ class ArduinoStateMachine(StateMachine):
     def on_wait(self, *args, **kwargs):
         print('Waiting.... 🐸')
         
-
 
 class Arduino:
     def __init__(self, config_handler:ConfigHandler) -> None:

@@ -37,12 +37,10 @@ class ConfigHandler:
     def __str__(self) -> str:
         return f'Arduino port: {self.config.arduino_port}\nOscilloscope port: {self.config.oscilloscope_port}\nm: {self.config.m}\nc: {self.config.c}'
     
-    
     def save_config(self) -> None:
         """Save the configuration to a file."""
         with open(f'{TEMP_DIRECTORY}/{CONFIG_FILE}', 'wb') as f:
             pickle.dump(self.config, f)
-    
     
     def load_config(self) -> None:
         """Load the configuration from a file."""
@@ -50,21 +48,17 @@ class ConfigHandler:
             self.config = pickle.load(f)
             self.calibration = Calibration(m=self.config.m, c=self.config.c)
         
-        
     def calibrate(self, wavelengths:np.ndarray, positions:np.ndarray) -> None:
         self.calibration.calibrate(wavelengths, positions)
         self.config.m = self.calibration.m
         self.config.c = self.calibration.c
         
-        
     def position(self, wavelength:float) -> float:
         return self.calibration.position(wavelength)
-    
     
     def list_serial_ports(self) -> None:
         """List the serial available ports."""
         return sorted(serial.tools.list_ports.comports())
-         
          
     def list_pyvisa_instruments(self) -> None:
         """List the pyvisa available instruments."""

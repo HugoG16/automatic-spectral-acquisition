@@ -13,17 +13,18 @@ from automatic_spectral_acquisition.constants import *
 def error_message(exception_type:str, message:str) -> None:
     if DEBUG:
         exception_class = globals().get('__builtins__').get(exception_type, Exception)
-        raise exception_class(message)
+        if exception_class is not None:
+            raise exception_class(message)
     else:
         print(f'[bold red]{exception_type}:[/bold red] {message}')
-        print(f'[#969696]Switch DEBUG to True for a traceback.[/#969696]')
+        print(f'[#969696]Switch DEBUG to True for a traceback when available.[/#969696]')
         sys.exit()
         
 def info_message(message:str, type:str|None=None) -> None:
     if type is not None:
         print(f'[bold purple]{type}:[/bold purple] {message}')
     else:
-        print(f'{message}')
+        print(message)
 
 def save_diagram_to_file(sm:StateMachine, path:str=f'{TEMP_DIRECTORY}/statemachine_diagram.svg') -> None:
     """Save the diagram of the state machine to an SVG file.

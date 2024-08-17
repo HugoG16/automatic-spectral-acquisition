@@ -66,8 +66,8 @@ class ConfigHandler:
         return sorted(serial.tools.list_ports.comports())
          
          
-    def list_pyvisa_ports(self) -> None:
-        """List the pyvisa available ports."""
+    def list_pyvisa_instruments(self) -> None:
+        """List the pyvisa available instruments."""
         return pyvisa.ResourceManager().list_resources()
     
     

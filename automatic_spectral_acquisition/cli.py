@@ -9,22 +9,22 @@ def create_config_subcommands() -> Typer:
     @app.command()
     def create():
         core = Core()
-        core.config_create()
+        core.cli_config_create()
         
     @app.command()
     def delete():
         core = Core()
-        core.config_delete()
+        core.cli_config_delete()
     
     @app.command()
     def list():
         core = Core()
-        core.config_list()
+        core.cli_config_list()
     
     @app.command()
     def calibrate():
         core = Core()
-        core.config_calibrate()
+        core.cli_config_calibrate()
     
     return app
     
@@ -38,18 +38,18 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
                  step:float, 
                  number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS):
         core = Core()
-        core.initialize()
+        core.cli_initialize()
         core.record_spectrum(start, end, step, number_of_measurements)
-        core.finalize()
+        core.cli_finalize()
         
         
     @app.command()
     def single(wavelength:float,
                number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS):
         core = Core()
-        core.initialize()
-        core.record_single(wavelength, number_of_measurements)
-        core.finalize()
+        core.cli_initialize()
+        core.cli_record_single(wavelength, number_of_measurements)
+        core.cli_finalize()
     
     app.add_typer(create_config_subcommands(), name='config')
     

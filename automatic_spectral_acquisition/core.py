@@ -2,6 +2,7 @@ import logging
 import os
 
 from rich import print
+import pyinputplus as pyin
 
 from automatic_spectral_acquisition.arduino import Arduino
 from automatic_spectral_acquisition.oscilloscope import Oscilloscope
@@ -134,7 +135,7 @@ class Core:
             current_wavelength += step
         return wavelengths
 
-    ################################################## not complete ##################################################
+
     def perform_measurement(self, 
                             wavelength:float, 
                             number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
@@ -143,7 +144,15 @@ class Core:
         # arduino.change_wavelength()
         # y, yerr = oscilloscope.take_measurement()
         # file_manager.add_buffer([wl, y, terr])
-    ################################################## not complete ##################################################
+    
+    
+    def connect_arduino(self) -> None:
+        print('Connect Arduino - not implemented')
+        
+        
+    def connect_oscilloscope(self) -> None:
+        print('Connect Oscilloscope - not implemented')
+        
 
     def record_spectrum(self, 
                         start:float, 
@@ -164,8 +173,48 @@ class Core:
             self.perform_measurement(wl, number_of_measurements)
         self.file_manager.save_buffer()
 
+    def get_arduino_port(self) -> str:
+        ports = self.config_handler.list_serial_ports()
         
-    def record_single(self, 
+        if len(ports) == 0:
+            error_message('Error', 'No port was detected.')
+            
+        arduino_port = pyin.inputMenu(prompt='Select the Arduino port:\n', 
+                                      choices=[i.description for i in ports]+['Exit',], 
+                                      numbered=True)
+        
+        if arduino_port == 'Exit':
+            info_message('Configuration not saved.', 'Exit')
+            exit()
+        
+        for i in ports:
+            if arduino_port == i.description:
+                arduino_port = i.name
+                break
+        
+        if arduino_port is None:
+            error_message('Error', 'Port not valid.')
+            
+        return arduino_port
+    
+    def get_oscilloscope_port(self) -> str:
+        instruments = self.config_handler.list_pyvisa_instruments()
+        if len(instruments) == 0:
+            error_message('Error', 'No instrument was detected.')
+
+        oscilloscope_port = pyin.inputMenu(prompt='Select the oscilloscope port:\n', 
+                                           choices=instruments+('Exit',), 
+                                           numbered=True)
+        
+        if oscilloscope_port == 'Exit':
+            info_message('Configuration not saved.', 'Exit')
+            exit()
+            
+        return oscilloscope_port
+
+########################### cli commands ###########################
+        
+    def cli_record_single(self, 
                       wavelength:float,
                       number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
         """Perform a single measurement.
@@ -177,24 +226,43 @@ class Core:
         self.check_parameters_single(wavelength, number_of_measurements)
         self.perform_measurement(wavelength, number_of_measurements)
         self.file_manager.save_buffer()
-        
-    
-    ################################################## not complete ##################################################
-    ################################################## vvvvvvvvvvvv ##################################################
     
     
-    def config_create(self) -> None:
-        print('config_create - not implemented')
+    def cli_config_create(self) -> None:
+        # get arduino port
+        if IGNORE_CONNECTIONS:
+            arduino_port = pyin.inputMenu(prompt='Select the Arduino port:\n', 
+                                          choices=['Fake port Arduino', 'Exit'], 
+                                          numbered=True)
+            if arduino_port == 'Exit':
+                info_message('Configuration not saved.', 'Exit')
+                exit()
+        else:
+            arduino_port = self.get_arduino_port()
+            
+        # get oscilloscope port
+        if IGNORE_CONNECTIONS:
+            oscilloscope_port = pyin.inputMenu(prompt='Select the oscilloscope port:\n', 
+                                          choices=['Fake port oscilloscope', 'Exit'], 
+                                          numbered=True)
+            if oscilloscope_port == 'Exit':
+                info_message('Configuration not saved.', 'Exit')
+                exit()
+        else:
+            oscilloscope_port = self.get_oscilloscope_port()
+
+        # create config handler        
+        self.config_handler = ConfigHandler(arduino_port=arduino_port,
+                                            oscilloscope_port=oscilloscope_port)
         
-        self.config_handler = ConfigHandler(arduino_port='test1',
-                                            oscilloscope_port='test2',
-                                            m=1,
-                                            c=2)
-        
+        # save config hanfler
         self.config_handler.save_config()
         
+        # calibrate
+        self.cli_config_calibrate()
+        
     
-    def config_delete(self) -> None:
+    def cli_config_delete(self) -> None:
         if not self.config_handler.check_config_exists():
             info_message('No configuration file found.', 'Information')
             return
@@ -202,7 +270,7 @@ class Core:
         info_message('Configuration file deleted.', 'Information')
         
 
-    def config_list(self) -> None:
+    def cli_config_list(self) -> None:
         if not self.config_handler.check_config_exists():
             info_message('No configuration file found.', 'Information')
             return
@@ -210,25 +278,26 @@ class Core:
         print(self.config_handler)
         
         
-    def config_calibrate(self) -> None:
-        print('config_calibrate - not implemented')
-    
-    
-    def connect_arduino(self) -> None:
-        print('Connect Arduino - not implemented')
+    def cli_config_calibrate(self) -> None:
+        if self.config_handler.check_config_exists():
+            self.config_handler.load_config()
+        else:
+            error_message('Error', 'No configuration file found. Use "spectral config create".')
+
+        print('Calibrate - not implemented')
         
+        self.config_handler.config.m = 1
+        self.config_handler.config.c = 0
         
-    def connect_oscilloscope(self) -> None:
-        print('Connect Oscilloscope - not implemented')
+        self.config_handler.save_config()
     
-    
-    def initialize(self) -> None: # deals with connections and basic setup 
+    def cli_initialize(self) -> None: # deals with connections and basic setup 
         print('\nInitialize - not implemented')
         
         if self.config_handler.check_config_exists():
             self.config_handler.load_config()
         else:
-            self.config_create()
+            self.cli_config_create()
             self.config_handler.save_config()
         
         self.connect_arduino()
@@ -237,7 +306,7 @@ class Core:
         print('End Initialize\n')
         
         
-    def finalize(self) -> None:
+    def cli_finalize(self) -> None:
         # close connections
         # go to known position on arduino
         print('Finalize - not implemented')

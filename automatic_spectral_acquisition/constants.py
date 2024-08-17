@@ -1,6 +1,6 @@
 ############################# Debug optons #############################
 DEBUG:bool = False # Changes how exceptions are dealt with.
-IGNORE_CONNECTIONS:bool = True # Ignore connections
+IGNORE_CONNECTIONS:bool = True # Ignore connections and fakes parts in order to test the program without the hardware.
 
 
 ############################# Arduino connection #############################

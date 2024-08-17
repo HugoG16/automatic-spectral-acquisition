@@ -15,7 +15,7 @@ DEFAULT_NUMBER_OF_MEASUREMENTS:int = 3 # Default number of measurements to take 
 WAVELENGTH_MIN:float = 200 # Minimum wavelength that can be measured.
 WAVELENGTH_MAX:float = 1050 # Maximum wavelength that can be measured.
 DEFAULT_POSITION:float = 0 # Default position for the motor.
-CALIBRATION_POSITIONS:list[float] = [-4000 ,-2000 , 0, 2000, 4000] # Wavelengths used for calibration.
+CALIBRATION_POSITIONS:list[float] = [-4000 ,-2000 , 0, 2000, 4000] # Position of wavelengths used for calibration.
 
 ############################# File options #############################
 OUTPUT_DIRECTORY:str = 'automatic_spectral_acquisition/output' 

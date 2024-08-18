@@ -333,7 +333,7 @@ class Core:
         os.remove(f'{TEMP_DIRECTORY}/{CONFIG_FILE}')
         info_message('Configuration file deleted.', 'Information')       
 
-    def cli_config_list(self) -> None:
+    def cli_config_show(self) -> None:
         if not self.config_handler.check_config_exists():
             info_message('No configuration file found.', 'Information')
             return

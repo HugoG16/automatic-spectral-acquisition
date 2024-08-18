@@ -163,25 +163,6 @@ class Core:
     def connect_oscilloscope(self) -> None: # not complete
         print('Connect Oscilloscope - not implemented')
         
-    def record_spectrum(self, 
-                        start:float, 
-                        end:float, 
-                        step:float, 
-                        number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
-        """Perform spectral acquisition.
-
-        Args:
-            start (float): The starting wavelength.
-            end (float): The ending wavelength.
-            step (float): The step size between measurements.
-            number_of_measurements (int, optional): The number of measurements to take for each wavelength. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
-        """
-        self.check_parameters_spectrum(start, end, step, number_of_measurements)
-        wavelengths = self.create_wavelengths(start, end, step)
-        for wl in wavelengths:
-            self.perform_measurement(wl, number_of_measurements)
-        self.file_manager.save_buffer()
-    
     def get_arduino_port(self) -> str:
         ports = self.config_handler.list_serial_ports()
         
@@ -221,9 +202,7 @@ class Core:
             
         return oscilloscope_port
 
-########################### cli commands ###########################
-        
-    def cli_record_single(self, 
+    def record_single(self, 
                       wavelength:float,
                       number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
         """Perform a single measurement.
@@ -232,9 +211,80 @@ class Core:
             wavelength (float): The wavelength to measure.
             number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
         """
-        self.check_parameters_single(wavelength, number_of_measurements)
         self.perform_measurement(wavelength, number_of_measurements)
         self.file_manager.save_buffer()
+    
+    def record_spectrum(self, 
+                        start:float, 
+                        end:float, 
+                        step:float, 
+                        number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
+        """Perform spectral acquisition.
+
+        Args:
+            start (float): The starting wavelength.
+            end (float): The ending wavelength.
+            step (float): The step size between measurements.
+            number_of_measurements (int, optional): The number of measurements to take for each wavelength. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+        """
+        wavelengths = self.create_wavelengths(start, end, step)
+        for wl in wavelengths:
+            self.perform_measurement(wl, number_of_measurements)
+        self.file_manager.save_buffer()
+        
+    def initialize(self) -> None:  # not complete
+        print('\nInitialize - not implemented')
+                
+        if self.config_handler.check_config_exists():
+            self.config_handler.load_config()
+        else:
+            self.cli_config_create()
+            self.config_handler.save_config()
+        
+        self.connect_arduino()
+        self.connect_oscilloscope()
+        
+        print('End Initialize\n')
+        
+    def finalize(self) -> None:  # not complete
+        print('Finalize - not implemented')
+        print('> close connections if necessary - not implemented')
+        print('> save and close files if necessary - not implemented')
+        print('> go to know position - not implemented')
+        
+########################### cli commands ###########################
+    
+    def cli_record_single(self, 
+                      wavelength:float,
+                      number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
+        """Perform a single measurement. Used by the CLI.
+
+        Args:
+            wavelength (float): The wavelength to measure.
+            number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+        """
+        self.check_parameters_single(wavelength, number_of_measurements)
+        self.initialize()
+        self.record_single(wavelength, number_of_measurements)
+        self.finalize()
+        
+    def cli_record_spectrum(self, 
+                        start:float, 
+                        end:float, 
+                        step:float, 
+                        number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
+        """Perform spectral acquisition. Used by the CLI.
+
+        Args:
+            start (float): The starting wavelength.
+            end (float): The ending wavelength.
+            step (float): The step size between measurements.
+            number_of_measurements (int, optional): The number of measurements to take for each wavelength. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+        """
+        self.check_parameters_spectrum(start, end, step, number_of_measurements)
+        self.initialize()
+        self.record_spectrum(start, end, step, number_of_measurements)
+        self.finalize()
     
     def cli_config_create(self) -> None:
         # get arduino port
@@ -302,23 +352,3 @@ class Core:
         self.config_handler.calibrate(wavelengths, CALIBRATION_POSITIONS)
         self.config_handler.save_config()
     
-    def cli_initialize(self) -> None:  # not complete
-        print('\nInitialize - not implemented')
-                
-        if self.config_handler.check_config_exists():
-            self.config_handler.load_config()
-        else:
-            self.cli_config_create()
-            self.config_handler.save_config()
-        
-        self.connect_arduino()
-        self.connect_oscilloscope()
-        
-        print('End Initialize\n')
-        
-    def cli_finalize(self) -> None:  # not complete
-        print('Finalize - not implemented')
-        print('> close connections if necessary - not implemented')
-        print('> save and close files if necessary - not implemented')
-        print('> go to know position - not implemented')
-        

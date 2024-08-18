@@ -36,9 +36,10 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
     def spectrum(start:float, 
                  end:float, 
                  step:float, 
-                 number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS):
+                 number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS,
+                 plot:bool = False):
         core = Core()
-        core.cli_record_spectrum(start, end, step, number_of_measurements)        
+        core.cli_record_spectrum(start, end, step, number_of_measurements, plot)        
         
     @app.command()
     def single(wavelength:float,

@@ -11,6 +11,7 @@ from automatic_spectral_acquisition.file_manager import FileManager
 from automatic_spectral_acquisition.config import ConfigHandler
 from automatic_spectral_acquisition.constants import *
 from automatic_spectral_acquisition.helper import error_message, info_message
+from automatic_spectral_acquisition.extras import plot_spectrum
 
 
 class Core:
@@ -271,10 +272,11 @@ class Core:
         self.finalize()
         
     def cli_record_spectrum(self, 
-                        start:float, 
-                        end:float, 
-                        step:float, 
-                        number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
+                            start:float, 
+                            end:float, 
+                            step:float, 
+                            number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS,
+                            plot:bool=False) -> None:
         """Perform spectral acquisition. Used by the CLI.
 
         Args:
@@ -282,11 +284,14 @@ class Core:
             end (float): The ending wavelength.
             step (float): The step size between measurements.
             number_of_measurements (int, optional): The number of measurements to take for each wavelength. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+            plot (bool, optional): Whether to plot the spectrum. Defaults to False.
         """
         self.check_parameters_spectrum(start, end, step, number_of_measurements)
         self.initialize()
         self.record_spectrum(start, end, step, number_of_measurements)
         self.finalize()
+        if plot:
+            plot_spectrum()
     
     def cli_config_create(self) -> None:
         # get arduino port

@@ -23,4 +23,4 @@ TEMP_DIRECTORY:str = 'automatic_spectral_acquisition/temp'
 OUTPUT_FILE:str = 'output.csv'
 LOG_FILE:str = 'log.txt'
 CONFIG_FILE:str = 'config.pkl'
-
+DEFAULT_HEADER:list[str]=['wavelength(nm)', 'voltage(mV)', 'uncertainty(mV)']

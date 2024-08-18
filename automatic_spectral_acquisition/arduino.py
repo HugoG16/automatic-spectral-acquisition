@@ -77,7 +77,8 @@ class Arduino:
     def connect(self) -> None:
         self._send('connect', config_handler=self.config_handler)
         
-    def request(self, wavelength:float) -> None:
+    def change_wavelength(self, wavelength:float) -> None:
         self._send('request', position=self.config_handler.position(wavelength))
         
+        print('waiting for confirmation.... 🐸 - not implemented' )
     

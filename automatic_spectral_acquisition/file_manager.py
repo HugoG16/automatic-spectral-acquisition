@@ -10,13 +10,15 @@ class FileManager:
                  output_file:str=OUTPUT_FILE,
                  temp_directory:str=TEMP_DIRECTORY,
                  log_file:str=LOG_FILE,
-                 output_header:list[str]=['wavelength(nm)', 'voltage(mV)', 'uncertainty(mV)']) -> None:
+                 output_header:list[str]=DEFAULT_HEADER) -> None:
         """Initialize the FileManager class.
 
         Args:
             output_directory (str, optional): The directory to save the output file. Defaults to OUTPUT_DIRECTORY.
+            output_file (str, optional): The name of the output file. Defaults to OUTPUT_FILE.
             temp_directory (str, optional): The directory to save the temporary file. Defaults to TEMP_DIRECTORY.
-            output_header (list[str], optional): The header for the output file. Defaults to ['wavelength(nm)', 'voltage(mV)', 'uncertainty(mV)'].
+            log_file (str, optional): The name of the log file. Defaults to LOG_FILE.
+            output_header (list[str], optional): The header for the output file. Defaults to DEFAULT_HEADER.
         """
         self.output_directory = output_directory
         self.temp_directory = temp_directory
@@ -48,6 +50,16 @@ class FileManager:
         """This method saves the buffer to the output file specified in the output_directory attribute.
         """
         with open(self.output_file_directory, 'w', newline='') as f:
-            writer = csv.writer(f)
+            writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
             writer.writerow(self.output_header)
             writer.writerows(self.buffer)
+            
+    def load_output(self, file:str|None=None) -> list[list[float]]:
+
+        if file is None:
+            file = self.output_file_directory
+        
+        with open(file, 'r') as f:
+            reader = csv.reader(f, quoting=csv.QUOTE_NONNUMERIC)
+            next(reader, None)  # skip the header
+            self.buffer = [row for row in reader]

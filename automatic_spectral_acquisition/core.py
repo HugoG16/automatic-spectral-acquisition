@@ -152,6 +152,8 @@ class Core:
                             number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
         logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} times.')
         print('performing measurement - not implemented')
+        from numpy import sin
+        self.file_manager.add_buffer([wavelength, sin(wavelength/25), 0.1])
         # arduino.change_wavelength()
         # y, yerr = oscilloscope.take_measurement()
         # file_manager.add_buffer([wl, y, terr])

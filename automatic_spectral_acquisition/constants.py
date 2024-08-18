@@ -1,11 +1,18 @@
 ############################# Debug options #############################
 DEBUG:bool = False # Changes how exceptions are dealt with.
-IGNORE_CONNECTIONS:bool = True # Ignore connections and fakes parts in order to test the program without the hardware.
-
+IGNORE_CONNECTIONS:bool = False # Ignore connections and fakes parts in order to test the program without the hardware.
+IGNORE_REQUESTS:bool = True # Ignore requests.
 
 ############################# Arduino connection #############################
 ARDUINO_BAUDRATE = 9600 # Baudrate for the arduino
 ARDUINO_TIMEOUT = 0.1 # Timeout for the arduino
+
+############################# Arduino commands #############################
+GOTO    = "GOTO"     # Send
+DONE    = "DONE"     # Receive - completed request
+INVALID = "INVALID"  # Receive - invalid request
+RUNNING = "RUNNING"  # Receive - motor is moving
+STOP    = "STOP"     # Receive - stop button was pressed
 
 ############################# Oscilloscope settings #############################
 

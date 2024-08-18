@@ -1,7 +1,6 @@
 import serial
 from time import sleep
 
-import pyinputplus as pyin
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
@@ -9,6 +8,8 @@ from automatic_spectral_acquisition.config import ConfigHandler
 from automatic_spectral_acquisition.helper import error_message
 from automatic_spectral_acquisition.constants import *
 
+
+class CommandError(Exception): ...
 
 class ArduinoStateMachine(StateMachine):
     # Define states
@@ -39,46 +40,108 @@ class ArduinoStateMachine(StateMachine):
         arduino_port = config_handler.config.arduino_port
         if arduino_port is None:
             error_message('ValueError', 'Arduino port not set.')
+            
+        # Check if arduino_instance is passed
+        arduino_instance:Arduino = kwargs.get('arduino_instance')
+        if not isinstance(arduino_instance, Arduino):
+            error_message('TypeError', 'Arduino object not passed.')
         
         # Connect to arduino
         try:
-            self.serial = serial.Serial(arduino_port, ARDUINO_BAUDRATE, timeout=ARDUINO_TIMEOUT)
+            arduino_instance.arduino_connection = serial.Serial(port=arduino_port, 
+                                                                baudrate=ARDUINO_BAUDRATE, 
+                                                                timeout=ARDUINO_TIMEOUT)
             sleep(2)
+            arduino_instance.arduino_connection.reset_input_buffer()
         except serial.SerialException:
             error_message('SerialException', f'Could not connect to arduino on port {arduino_port}.')
         
     def on_request(self, *args, **kwargs):
+        if IGNORE_REQUESTS:
+            return
+        
+        # Check if position is passed
         position:float = kwargs.get('position')
         if not isinstance(position, float):
-            error_message('TypeError', 'Position not passed.')
-        print('sending request.... 🐸')
+            error_message('TypeError', 'Position not passed or not a float.')
         
-    def on_complete(self, *args, **kwargs):
-        print('received confirmation.... 🐸')
-        
-    def on_disconnect(self, *args, **kwargs):
-        print('Disconnecting.... 🐸')
+        # Check if arduino_instance is passed
+        arduino_instance:Arduino = kwargs.get('arduino_instance')
+        if not isinstance(arduino_instance, Arduino):
+            error_message('TypeError', 'Arduino object not passed.')
+
+        arduino_instance.arduino_connection.write(bytes(f'{GOTO} {position}~', 'UTF-8'))
         
     def on_wait(self, *args, **kwargs):
-        print('Waiting.... 🐸')
+        # Check if arduino_instance is passed
+        arduino_instance:Arduino = kwargs.get('arduino_instance')
+        if not isinstance(arduino_instance, Arduino):
+            error_message('TypeError', 'Arduino object not passed.')
+          
+        while True:
+            if arduino_instance.arduino_connection.in_waiting: # check if there is data to read
+                received_bytes = arduino_instance.arduino_connection.read_until(expected=b'~')
+                try:
+                    command = received_bytes.decode('UTF-8')[:-1]
+                except UnicodeDecodeError:
+                    error_message('UnicodeDecodeError', f'Could not decode command from arduino. Received: {received_bytes}')
+                
+                if command == DONE:
+                    return
+                elif command == INVALID:
+                    error_message('CommandError', 'Arduino received an invalid command.')
+                elif command == RUNNING:
+                    error_message('CommandError', 'Tried to send command while motor was already moving.')
+                elif command == STOP:
+                    error_message('CommandError', 'Stop button was pressed.')
+                else:
+                    error_message('CommandError', f'Unknown command received: {command}')
+
+    # def on_complete(self, *args, **kwargs): # Not needed for now
+    #     pass
+        
+    def on_disconnect(self, *args, **kwargs):
+        if IGNORE_CONNECTIONS:
+            return
+        
+        # Check if arduino_instance is passed
+        arduino_instance:Arduino = kwargs.get('arduino_instance')
+        if not isinstance(arduino_instance, Arduino):
+            error_message('TypeError', 'Arduino object not passed.')
+
+        # Check if serial connection is set
+        if arduino_instance.arduino_connection is None:
+            error_message('ValueError', 'Cannot disconnect without a connection.')
+        
+        arduino_instance.arduino_connection.close()
+        arduino_instance.arduino_connection = None
         
 
 class Arduino:
     def __init__(self, config_handler:ConfigHandler) -> None:
-        self.config_handler = config_handler
-        self.state_machine = ArduinoStateMachine()
+        self.config_handler:ConfigHandler = config_handler
+        self.state_machine:ArduinoStateMachine = ArduinoStateMachine()
+        self.arduino_connection:serial.Serial = None
 
     def _send(self, transition:str, *args, **kwargs) -> None:
         try:
-            self.state_machine.send(transition, *args, **kwargs)
+            return self.state_machine.send(transition, *args, **kwargs)
         except TransitionNotAllowed as e:
             error_message('TransitionNotAllowed', e)
             
     def connect(self) -> None:
-        self._send('connect', config_handler=self.config_handler)
+        self._send('connect', config_handler=self.config_handler, arduino_instance=self)
         
     def change_wavelength(self, wavelength:float) -> None:
-        self._send('request', position=self.config_handler.position(wavelength))
-        
-        print('waiting for confirmation.... 🐸 - not implemented' )
+        self._send('request', position=self.config_handler.position(wavelength),
+                   arduino_instance=self)
+        self._send('wait', arduino_instance=self)
+        self._send('complete')
     
+    def change_position(self, position:float) -> None:
+        self._send('request', position=position, arduino_instance=self)
+        self._send('wait', arduino_instance=self)
+        self._send('complete')
+    
+    def disconnect(self) -> None:
+        self._send('disconnect', arduino_instance=self)

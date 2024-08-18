@@ -15,8 +15,7 @@ from automatic_spectral_acquisition.extras import plot_spectrum
 
 
 class Core:
-    ################################################## not complete ##################################################
-    def __init__(self,
+    def __init__(self, # not complete - missing oscilloscope
                  output_directory:str=OUTPUT_DIRECTORY, 
                  output_file:str=OUTPUT_FILE,
                  temp_directory:str=TEMP_DIRECTORY,
@@ -29,6 +28,9 @@ class Core:
                  wavelengths:list[float]=None,
                  positions:list[float]=None) -> None:
         
+        if DEBUG or IGNORE_CONNECTIONS or IGNORE_REQUESTS:
+            info_message('Debug mode is enabled.', 'Information')
+            
         # Catch interrupt signal to make sure the program ends correctly
         signal.signal(signal.SIGINT, self.interrupt_handler)
         
@@ -45,8 +47,7 @@ class Core:
         # create the rest of the class instances
         self.config_handler = ConfigHandler(arduino_port, oscilloscope_port, m, c, wavelengths, positions)
         self.arduino = Arduino(self.config_handler)
-        
-    ################################################## not complete ##################################################
+        # self.oscilloscope = Oscilloscope(self.config_handler)
     
     @staticmethod
     def check_parameters_spectrum(start: float, end: float, step: float, number_of_measurements: int) -> None:
@@ -145,19 +146,34 @@ class Core:
     def interrupt_handler(self, signum, frame) -> None:
         """Interrupt handler to stop the program safely."""
         info_message('Interrupt signal received. Exiting...', 'Exit')
-        self.cli_finalize()
+        self.finalize()
         exit()
     
-    def perform_measurement(self, # not complete
+    def perform_measurement(self, # not complete - missing oscilloscope
                             wavelength:float, 
                             number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
         logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} times.')
-        print('performing measurement - not implemented')
-        from numpy import sin
-        self.file_manager.add_buffer([wavelength, sin(wavelength/25), 0.1])
-        # arduino.change_wavelength()
-        # y, yerr = oscilloscope.take_measurement()
-        # file_manager.add_buffer([wl, y, terr])
+        print('performing measurement - not implemented - missing oscilloscope')
+        
+        self.arduino.change_wavelength(wavelength)
+        
+        measurements = []
+        errors = []
+        
+        # for _ in range(number_of_measurements):
+        #     measurement, error = oscilloscope.take_measurement()
+        #     measurements.append(measurement)
+        #     errors.append(error)
+        
+        if len(measurements)==0 or len(errors)==0:
+            info_message('No measurements were taken.', 'Information')
+            measurement_avg = None
+            error_avg = None
+        else:
+            measurement_avg = sum(measurements) / number_of_measurements
+            error_avg = sum(errors) / number_of_measurements
+        
+        self.file_manager.add_buffer([wavelength, measurement_avg, error_avg])
     
     def connect_arduino(self) -> None:
         self.arduino = Arduino(self.config_handler)
@@ -235,9 +251,9 @@ class Core:
             self.perform_measurement(wl, number_of_measurements)
         self.file_manager.save_buffer()
         
-    def initialize(self) -> None:  # not complete
-        print('\nInitialize - not implemented')
-                
+    def initialize(self) -> None:  # not complete - missing oscilloscope
+        print('\nInitialize - not implemented - missing connection to oscilloscope')
+
         if self.config_handler.check_config_exists():
             self.config_handler.load_config()
         else:
@@ -245,15 +261,14 @@ class Core:
             self.config_handler.save_config()
         
         self.connect_arduino()
-        self.connect_oscilloscope()
+        self.connect_oscilloscope() # not complete
         
-        print('End Initialize\n')
-        
-    def finalize(self) -> None:  # not complete
+    def finalize(self) -> None:  # not complete - maybe missing some operations
         print('Finalize - not implemented')
         print('> close connections if necessary - not implemented')
         print('> save and close files if necessary - not implemented')
-        print('> go to know position - not implemented')
+        print('> going to know position - temporary messsage') 
+        self.arduino.change_position(DEFAULT_POSITION)
         
 ########################### cli commands ###########################
     
@@ -340,16 +355,18 @@ class Core:
         self.config_handler.load_config()
         print(self.config_handler)
         
-    def cli_config_calibrate(self) -> None:  # not complete
+    def cli_config_calibrate(self) -> None:
         if self.config_handler.check_config_exists():
             self.config_handler.load_config()
         else:
             error_message('Error', 'No configuration file found. Use "spectral config create".')
 
-        info_message('Starting calibration...', 'Information')
+        self.connect_arduino() # Connect to arduino
+        
+        info_message('Starting motor calibration...', 'Information')
         wavelengths = [] 
         for position in CALIBRATION_POSITIONS:
-            print(f'Moving motor to position {position} - Not implemented...')
+            self.arduino.change_position(position)
             
             wavelength = pyin.inputFloat(prompt='Enter the wavelength for the current position: ',
                                          min=WAVELENGTH_MIN, max=WAVELENGTH_MAX)

@@ -15,7 +15,7 @@ from automatic_spectral_acquisition.extras import plot_spectrum
 
 
 class Core:
-    def __init__(self, # not complete - missing oscilloscope
+    def __init__(self,
                  output_directory:str=OUTPUT_DIRECTORY, 
                  output_file:str=OUTPUT_FILE,
                  temp_directory:str=TEMP_DIRECTORY,
@@ -47,7 +47,7 @@ class Core:
         # create the rest of the class instances
         self.config_handler = ConfigHandler(arduino_port, oscilloscope_port, m, c, wavelengths, positions)
         self.arduino = Arduino(self.config_handler)
-        # self.oscilloscope = Oscilloscope(self.config_handler)
+        self.oscilloscope = Oscilloscope(self.config_handler)
     
     @staticmethod
     def check_parameters_spectrum(start: float, end: float, step: float, number_of_measurements: int) -> None:
@@ -149,7 +149,7 @@ class Core:
         self.finalize()
         exit()
     
-    def perform_measurement(self, # not complete - missing oscilloscope
+    def perform_measurement(self,
                             wavelength:float, 
                             number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
         logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} times.')
@@ -160,10 +160,10 @@ class Core:
         measurements = []
         errors = []
         
-        # for _ in range(number_of_measurements):
-        #     measurement, error = oscilloscope.take_measurement()
-        #     measurements.append(measurement)
-        #     errors.append(error)
+        for _ in range(number_of_measurements):
+            measurement, error = self.oscilloscope.get_measurement()
+            measurements.append(measurement)
+            errors.append(error)
         
         if len(measurements)==0 or len(errors)==0:
             info_message('No measurements were taken.', 'Information')
@@ -179,8 +179,9 @@ class Core:
         self.arduino = Arduino(self.config_handler)
         self.arduino.connect()
          
-    def connect_oscilloscope(self) -> None: # not complete
-        print('Connect Oscilloscope - not implemented')
+    def connect_oscilloscope(self) -> None:
+        self.oscilloscope = Oscilloscope(self.config_handler)
+        self.oscilloscope.connect()
         
     def get_arduino_port(self) -> str:
         ports = self.config_handler.list_serial_ports()
@@ -251,7 +252,7 @@ class Core:
             self.perform_measurement(wl, number_of_measurements)
         self.file_manager.save_buffer()
         
-    def initialize(self) -> None:  # not complete - missing oscilloscope
+    def initialize(self) -> None:
         print('\nInitialize - not implemented - missing connection to oscilloscope')
 
         if self.config_handler.check_config_exists():
@@ -261,13 +262,11 @@ class Core:
             self.config_handler.save_config()
         
         self.connect_arduino()
-        self.connect_oscilloscope() # not complete
+        self.connect_oscilloscope()
         
-    def finalize(self) -> None:  # not complete - maybe missing some operations
-        print('Finalize - not implemented')
-        print('> close connections if necessary - not implemented')
-        print('> save and close files if necessary - not implemented')
-        print('> going to know position - temporary messsage') 
+    def finalize(self) -> None: 
+        self.arduino.disconnect()
+        self.oscilloscope.disconnect()
         self.arduino.change_position(DEFAULT_POSITION)
         
 ########################### cli commands ###########################

@@ -15,7 +15,11 @@ RUNNING = "RUNNING"  # Receive - motor is moving
 STOP    = "STOP"     # Receive - stop button was pressed
 
 ############################# Oscilloscope settings #############################
-
+OSCILLOSCOPE_TIMEOUT:float = 1000 # Timeout for the oscilloscope (ms)
+OSCILLOSCOPE_HORIZONTAL_SCALE:float = 100e-3 # Time scale for the oscilloscope
+OSCILLOSCOPE_VERTICAL_SCALE:float = 5e-3 # Vertical scale for the oscilloscope
+OSCILLOSCOPE_OFFSET:float = 0 # Offset for the oscilloscope
+OSCILLOSCOPE_SCALES = [5e-3, 10e-3, 20e-3, 50e-3, 100e-3, 200e-3, 500e-3, 1000e-3] # List of vertical scales for the oscilloscope
 
 ############################# Measurements options #############################
 DEFAULT_NUMBER_OF_MEASUREMENTS:int = 3 # Default number of measurements to take for take for each wavelength.

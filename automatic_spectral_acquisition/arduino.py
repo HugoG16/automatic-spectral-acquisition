@@ -111,7 +111,7 @@ class ArduinoStateMachine(StateMachine):
 
         # Check if serial connection is set
         if arduino_instance.arduino_connection is None:
-            error_message('ValueError', 'Cannot disconnect without a connection.')
+            error_message('ValueError', 'Cannot disconnect Arduino without a connection.')
         
         arduino_instance.arduino_connection.close()
         arduino_instance.arduino_connection = None

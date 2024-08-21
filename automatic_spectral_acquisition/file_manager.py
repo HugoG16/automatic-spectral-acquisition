@@ -34,6 +34,7 @@ class FileManager:
         self.log_file_directory = f'{temp_directory}/{log_file}'
         
         self.buffer : list[list[float|None]] = []
+      
         
     def add_buffer(self, measurement:list[float|None]) -> None:
         """Add a measurement to the buffer.
@@ -42,20 +43,30 @@ class FileManager:
             measurement (list[float|None]): The measurement to add to the buffer.
         """
         self.buffer.append(measurement)
+      
         
     def get_buffer(self) -> list[float]:
+        """Return the buffer."""
         return self.buffer
     
+    
     def save_buffer(self) -> None:
-        """This method saves the buffer to the output file specified in the output_directory attribute.
-        """
+        """Saves the buffer to the output file specified in the output_directory attribute."""
         with open(self.output_file_directory, 'w', newline='') as f:
             writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
             writer.writerow(self.output_header)
             writer.writerows(self.buffer)
+         
             
     def load_output(self, file:str|None=None) -> list[list[float]]:
+        """Load the output file into the buffer.
 
+        Args:
+            file (str | None, optional): The path of the output file to load. Defaults to None.
+
+        Returns:
+            list[list[float]]: The loaded buffer as a list of lists of floats.
+        """
         if file is None:
             file = self.output_file_directory
         

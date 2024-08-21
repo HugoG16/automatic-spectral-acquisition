@@ -14,7 +14,8 @@ def create_config_subcommands() -> Typer:
         """
         core = Core()
         core.cli_config_create()
-        
+    
+    
     @app.command()
     def delete():
         """
@@ -22,7 +23,8 @@ def create_config_subcommands() -> Typer:
         """
         core = Core()
         core.cli_config_delete()
-    
+
+
     @app.command()
     def show():
         """
@@ -30,7 +32,8 @@ def create_config_subcommands() -> Typer:
         """
         core = Core()
         core.cli_config_show()
-    
+
+
     @app.command()
     def calibrate():
         """
@@ -40,9 +43,11 @@ def create_config_subcommands() -> Typer:
         core.cli_config_calibrate()
     
     return app
-    
+
+
 def create_app(app_name:str='Spectral data acquisition') -> Typer:
     app = Typer(name=app_name, add_completion=False, no_args_is_help=True)
+   
    
     @app.command(short_help='Record a spectrum.')
     def spectrum(start:Annotated[float, Argument(help='Start wavelength')],
@@ -56,6 +61,7 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
         """
         core = Core()
         core.cli_record_spectrum(start, end, step, number_of_measurements, plot)        
+        
         
     @app.command()
     def single(wavelength:Annotated[float, Argument(help='Wavelength to measure')],

@@ -16,6 +16,7 @@ from automatic_spectral_acquisition.extras import plot_spectrum
 
 
 class Core:
+    """Class to handle the core functionality of the program."""
     def __init__(self,
                  output_directory:str=OUTPUT_DIRECTORY, 
                  output_file:str=OUTPUT_FILE,
@@ -49,6 +50,7 @@ class Core:
         self.config_handler = ConfigHandler(arduino_port, oscilloscope_port, m, c, wavelengths, positions)
         self.arduino = Arduino(self.config_handler)
         self.oscilloscope = Oscilloscope(self.config_handler)
+    
     
     @staticmethod
     def check_parameters_spectrum(start: float, end: float, step: float, number_of_measurements: int) -> None:
@@ -90,6 +92,7 @@ class Core:
         if number_of_measurements <= 0:
             error_message('ValueError', 'Number of measurements must be greater than 0.')
 
+
     @staticmethod
     def check_parameters_single(wavelength: float, number_of_measurements: int) -> None:
         """Check if the parameters for a single measurement are valid.
@@ -118,6 +121,7 @@ class Core:
         if number_of_measurements <= 0:
             error_message('ValueError', 'Number of measurements must be greater than 0.')
 
+
     @staticmethod
     def create_wavelengths(start: float, end: float, step: float) -> None:
         """Create a list of wavelengths.
@@ -144,15 +148,23 @@ class Core:
             current_wavelength += step
         return wavelengths
 
+
     def interrupt_handler(self, signum, frame) -> None:
         """Interrupt handler to stop the program safely."""
         info_message('Interrupt signal received. Exiting...', 'Exit')
         self.finalize()
         exit()
     
+    
     def perform_measurement(self,
                             wavelength:float, 
                             number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
+        """Perform a measurement at a specific wavelength.
+
+        Args:
+            wavelength (float): The wavelength to measure.
+            number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+        """
         logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} times.')
         print('performing measurement - not implemented - missing oscilloscope')
         
@@ -176,15 +188,21 @@ class Core:
         
         self.file_manager.add_buffer([wavelength, measurement_avg, error_avg])
     
+    
     def connect_arduino(self) -> None:
+        """Connect to the Arduino."""
         self.arduino = Arduino(self.config_handler)
         self.arduino.connect()
+     
          
     def connect_oscilloscope(self) -> None:
+        """Connect to the oscilloscope."""
         self.oscilloscope = Oscilloscope(self.config_handler)
         self.oscilloscope.connect()
+       
         
     def get_arduino_port(self) -> str:
+        """Get the Arduino port from the user."""
         ports = self.config_handler.list_serial_ports()
         
         if len(ports) == 0:
@@ -208,7 +226,9 @@ class Core:
             
         return arduino_port
      
+     
     def get_oscilloscope_port(self) -> str:
+        """Get the oscilloscope port from the user."""
         instruments = self.config_handler.list_pyvisa_instruments()
         if len(instruments) == 0:
             error_message('Error', 'No instrument was detected.')
@@ -223,6 +243,7 @@ class Core:
             
         return oscilloscope_port
 
+
     def record_single(self, 
                       wavelength:float,
                       number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
@@ -234,6 +255,7 @@ class Core:
         """
         self.perform_measurement(wavelength, number_of_measurements)
         self.file_manager.save_buffer()
+    
     
     def record_spectrum(self, 
                         start:float, 
@@ -253,8 +275,9 @@ class Core:
             self.perform_measurement(wl, number_of_measurements)
         self.file_manager.save_buffer()
         
+        
     def initialize(self) -> None:
-        print('\nInitialize - not implemented - missing connection to oscilloscope')
+        """Load the configuration and connect to the Arduino and oscilloscope."""
 
         if self.config_handler.check_config_exists():
             self.config_handler.load_config()
@@ -265,7 +288,9 @@ class Core:
         self.connect_arduino()
         self.connect_oscilloscope()
         
+        
     def finalize(self) -> None: 
+        """Disconnect from the Arduino and oscilloscope. Changes the position of the monochromator to the default position."""
         self.arduino.disconnect()
         self.oscilloscope.disconnect()
         self.arduino.change_position(DEFAULT_POSITION)
@@ -285,6 +310,7 @@ class Core:
         self.initialize()
         self.record_single(wavelength, number_of_measurements)
         self.finalize()
+       
         
     def cli_record_spectrum(self, 
                             start:float, 
@@ -308,7 +334,9 @@ class Core:
         if plot:
             plot_spectrum()
     
+    
     def cli_config_create(self) -> None:
+        """Creates a configuration file. Used by the CLI."""
         # get arduino port
         if IGNORE_CONNECTIONS:
             arduino_port = pyin.inputMenu(prompt='Select the Arduino port:\n', 
@@ -340,22 +368,28 @@ class Core:
         
         # calibrate
         self.cli_config_calibrate()
+          
            
     def cli_config_delete(self) -> None:
+        """Deletes the configuration file. Used by the CLI."""
         if not self.config_handler.check_config_exists():
             info_message('No configuration file found.', 'Information')
             return
         os.remove(f'{TEMP_DIRECTORY}/{CONFIG_FILE}')
         info_message('Configuration file deleted.', 'Information')       
 
+
     def cli_config_show(self) -> None:
+        """Shows the configuration. Used by the CLI."""
         if not self.config_handler.check_config_exists():
             info_message('No configuration file found.', 'Information')
             return
         self.config_handler.load_config()
         print(self.config_handler)
         
+        
     def cli_config_calibrate(self) -> None:
+        """Calibrates the monochromator and updades the configuration file. Used by the CLI."""
         if self.config_handler.check_config_exists():
             self.config_handler.load_config()
         else:

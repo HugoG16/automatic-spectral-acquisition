@@ -11,6 +11,7 @@ from automatic_spectral_acquisition.constants import *
 
 
 class OscilloscopeStateMachine(StateMachine):
+    """State machine for the oscilloscope."""
     # Define states
     start = State('Start', initial=True)
     connected = State('Connected')
@@ -70,6 +71,7 @@ class OscilloscopeStateMachine(StateMachine):
         oscilloscope_instance.oscilloscope_connection.write('WFMOutpre:COMPosition SINGULAR_YT')
         oscilloscope_instance.oscilloscope_connection.write('DATa:WIDth 1')
     
+    
     def on_request(self, *args, **kwargs): # from previous code
         # Check if oscilloscope_instance is passed
         oscilloscope_instance:Oscilloscope = kwargs.get('oscilloscope_instance')
@@ -96,8 +98,10 @@ class OscilloscopeStateMachine(StateMachine):
             
             return mean, std
     
+    
     # def on_complete(self, *args, **kwargs): # not complete - not needed for now
     #     pass
+    
     
     def on_disconnect(self, *args, **kwargs): # not complete
         # Check if oscilloscope_instance is passed
@@ -112,43 +116,80 @@ class OscilloscopeStateMachine(StateMachine):
         oscilloscope_instance.oscilloscope_connection.close()
         oscilloscope_instance.oscilloscope_connection = None
 
+
 class Oscilloscope:
+    """Class to handle the oscilloscope."""
     def __init__(self, config_handler:ConfigHandler) -> None:
         self.config_handler:ConfigHandler = config_handler
         self.state_machine:OscilloscopeStateMachine = OscilloscopeStateMachine()
         self.oscilloscope_connection:pyvisa.Resource = None
         self.v_scale_index = 0
 
+
     def _send(self, transition:str, *args, **kwargs) -> None:
+        """Send a transition to the state machine. Internal method.
+
+        Args:
+            transition (str): The name of the transition to send.
+
+        Returns:
+            Any: The result of the transition.
+        """
         try:
             return self.state_machine.send(transition, *args, **kwargs)
         except TransitionNotAllowed as e:
             error_message('TransitionNotAllowed', e)
     
-    def _get_curve(self):
+    
+    def _get_curve(self) -> np.ndarray:
+        """Get the curve from the oscilloscope. Internal method."""
         self.oscilloscope_connection.write('ACQUIRE:STATE RUN')
         sleep(12*OSCILLOSCOPE_HORIZONTAL_SCALE)
         wave = self.oscilloscope_connection.query_binary_values('curve?', datatype='b', container=np.array)
         return np.array(wave, dtype='double') 
 
-    def _get_settings(self):
+
+    def _get_settings(self) -> tuple[float, float, float]:
+        """Get ymult, yoff, and yzero from the oscilloscope. Internal method."""
         ymult = float(self.oscilloscope_connection.query('WFMOutpre:YMUlt?'))
         yoff  = float(self.oscilloscope_connection.query('WFMOutpre:YOFf?'))
         yzero = float(self.oscilloscope_connection.query('WFMOutpre:YZEro?'))
         return ymult, yoff, yzero
+      
             
-    def _get_measurements(self, wave: np.ndarray, ymult: float, yoff: float, yzero: float):
+    def _get_measurements(self, 
+                          wave: np.ndarray, 
+                          ymult: float, 
+                          yoff: float, 
+                          yzero: float) -> tuple[float, float]:
+        """Calculate the average and standard deviation of the waveform.
+
+        Args:
+            wave (np.ndarray): The waveform data.
+            ymult (float): The y-axis multiplier.
+            yoff (float): The y-axis offset.
+            yzero (float): The y-axis zero.
+
+        Returns:
+            Tuple[float, float]: The average and standard deviation of the waveform.
+        """
         wave = (wave-yoff)*ymult+yzero
         return np.average(wave), np.std(wave)
     
+    
     def connect(self):
+        """Connect to the oscilloscope."""
         return self._send('connect', config_handler=self.config_handler, oscilloscope_instance=self)
     
+    
     def get_measurement(self):
+        """Get a measurement from the oscilloscope. Returns the mean and standard deviation."""
         val = self._send('request', oscilloscope_instance=self)
         self._send('complete')
         return val
     
+    
     def disconnect(self):
+        """Disconnect from the oscilloscope."""
         return self._send('disconnect', oscilloscope_instance=self)
     

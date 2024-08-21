@@ -9,9 +9,13 @@ from automatic_spectral_acquisition.helper import error_message
 from automatic_spectral_acquisition.constants import *
 
 
-class CommandError(Exception): ...
+class CommandError(Exception):
+    """Raised when an invalid command is received from the arduino."""
+    pass
+
 
 class ArduinoStateMachine(StateMachine):
+    """State machine for the Arduino connection."""
     # Define states
     start = State('Start', initial=True)
     connected = State('Connected') 
@@ -56,6 +60,7 @@ class ArduinoStateMachine(StateMachine):
         except serial.SerialException:
             error_message('SerialException', f'Could not connect to arduino on port {arduino_port}.')
         
+        
     def on_request(self, *args, **kwargs):
         if IGNORE_REQUESTS:
             return
@@ -71,6 +76,7 @@ class ArduinoStateMachine(StateMachine):
             error_message('TypeError', 'Arduino object not passed.')
 
         arduino_instance.arduino_connection.write(bytes(f'{GOTO} {position}~', 'UTF-8'))
+        
         
     def on_wait(self, *args, **kwargs):
         # Check if arduino_instance is passed
@@ -100,6 +106,7 @@ class ArduinoStateMachine(StateMachine):
     # def on_complete(self, *args, **kwargs): # Not needed for now
     #     pass
         
+        
     def on_disconnect(self, *args, **kwargs):
         if IGNORE_CONNECTIONS:
             return
@@ -118,30 +125,56 @@ class ArduinoStateMachine(StateMachine):
         
 
 class Arduino:
+    """Class for controlling the Arduino connection."""
     def __init__(self, config_handler:ConfigHandler) -> None:
         self.config_handler:ConfigHandler = config_handler
         self.state_machine:ArduinoStateMachine = ArduinoStateMachine()
         self.arduino_connection:serial.Serial = None
 
+
     def _send(self, transition:str, *args, **kwargs) -> None:
+        """Send a transition to the state machine. Internal method.
+
+        Args:
+            transition (str): The name of the transition to send.
+
+        Returns:
+            Any: The result of the transition.
+        """
         try:
             return self.state_machine.send(transition, *args, **kwargs)
         except TransitionNotAllowed as e:
             error_message('TransitionNotAllowed', e)
+          
             
     def connect(self) -> None:
+        """Connect to the Arduino."""
         self._send('connect', config_handler=self.config_handler, arduino_instance=self)
         
+        
     def change_wavelength(self, wavelength:float) -> None:
+        """Change the wavelength of the monochromator.
+
+        Args:
+            wavelength (float): The desired wavelength.
+        """
         self._send('request', position=self.config_handler.position(wavelength),
                    arduino_instance=self)
         self._send('wait', arduino_instance=self)
         self._send('complete')
     
+    
     def change_position(self, position:float) -> None:
+        """Change the position of the monochromator.
+
+        Args:
+            position (float): The desired position.
+        """
         self._send('request', position=position, arduino_instance=self)
         self._send('wait', arduino_instance=self)
         self._send('complete')
     
+    
     def disconnect(self) -> None:
+        """Disconnect from the Arduino."""
         self._send('disconnect', arduino_instance=self)

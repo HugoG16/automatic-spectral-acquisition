@@ -14,8 +14,20 @@ class Calibration:
         if wavelengths is not None and positions is not None:
             self.calibrate(np.asarray(wavelengths), np.asarray(positions))
     
+    
     def _line(self, x:float, m:float, c:float) -> float:
+        """Calculates the y-coordinate for a given x-coordinate using the equation y = mx + c. Internal method.
+
+        Args:
+            x (float): The x-coordinate.
+            m (float): The slope of the line.
+            c (float): The y-intercept of the line.
+
+        Returns:
+            float: The y-coordinate.
+        """
         return m*x + c
+    
     
     def calibrate(self, wavelengths:np.ndarray, positions:np.ndarray) -> None:
         """Calculates the parameters m and c for the calibration.
@@ -27,5 +39,14 @@ class Calibration:
         """
         self.m, self.c = np.polyfit(wavelengths, positions, 1)
         
+        
     def position(self, wavelength:float) -> float:
+        """Calculates the position for a given wavelength using the calibration parameters.
+
+        Args:
+            wavelength (float): The wavelength.
+
+        Returns:
+            float: The position.
+        """
         return self._line(wavelength, self.m, self.c)

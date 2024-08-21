@@ -3,13 +3,16 @@ import numpy as np
 
 from automatic_spectral_acquisition.file_manager import FileManager
 
+
 def plot_spectrum(display:bool=True, 
                   file_name:str='plot.png', 
                   dpi:int=300) -> None:
-    """Plot recorded spectrum. Assumes DEFAULT_HEADER structure.
+    """Plot recorded spectrum. Assumes DEFAULT_HEADER structure!
 
     Args:
-        title (str, optional): The title of the plot. Defaults to None.
+        display (bool, optional): Whether to display the plot. Defaults to True. If false image will be saved instead.
+        file_name (str, optional): The name of the output file. Defaults to 'plot.png'.
+        dpi (int, optional): The resolution of the output file. Defaults to 300.
     """
     file_manager = FileManager()
     file_manager.load_output()

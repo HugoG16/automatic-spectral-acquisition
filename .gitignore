@@ -3,5 +3,6 @@
 **/temp/
 
 tests/
+dist/
 
 *.lock

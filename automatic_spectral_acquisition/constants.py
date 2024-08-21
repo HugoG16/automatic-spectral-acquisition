@@ -19,14 +19,14 @@ OSCILLOSCOPE_TIMEOUT:float = 1000 # Timeout for the oscilloscope (ms)
 OSCILLOSCOPE_HORIZONTAL_SCALE:float = 100e-3 # Time scale for the oscilloscope
 OSCILLOSCOPE_VERTICAL_SCALE:float = 5e-3 # Vertical scale for the oscilloscope
 OSCILLOSCOPE_OFFSET:float = 0 # Offset for the oscilloscope
-OSCILLOSCOPE_SCALES = [5e-3, 10e-3, 20e-3, 50e-3, 100e-3, 200e-3, 500e-3, 1000e-3] # List of vertical scales for the oscilloscope
+OSCILLOSCOPE_SCALES = [5.e-3, 10.e-3, 20.e-3, 50.e-3, 100.e-3, 200.e-3, 500.e-3, 1000.e-3] # List of vertical scales for the oscilloscope
 
 ############################# Measurements options #############################
 DEFAULT_NUMBER_OF_MEASUREMENTS:int = 3 # Default number of measurements to take for take for each wavelength.
 WAVELENGTH_MIN:float = 200 # Minimum wavelength that can be measured.
 WAVELENGTH_MAX:float = 1050 # Maximum wavelength that can be measured.
 DEFAULT_POSITION:float = 0 # Default position for the motor.
-CALIBRATION_POSITIONS:list[float] = [-4000 ,-2000 , 0, 2000, 4000] # Position of wavelengths used for calibration.
+CALIBRATION_POSITIONS:list[float] = [-4000. ,-2000. , 0., 2000., 4000.] # Position of wavelengths used for calibration.
 
 ############################# File options #############################
 OUTPUT_DIRECTORY:str = 'automatic_spectral_acquisition/output' # Directory to save the output files.

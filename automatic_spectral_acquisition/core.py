@@ -3,6 +3,7 @@ import os
 import signal
 
 from rich import print
+from rich.progress import track
 import pyinputplus as pyin
 
 from automatic_spectral_acquisition.arduino import Arduino
@@ -248,7 +249,7 @@ class Core:
             number_of_measurements (int, optional): The number of measurements to take for each wavelength. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
         """
         wavelengths = self.create_wavelengths(start, end, step)
-        for wl in wavelengths:
+        for wl in track(wavelengths, description='Performing measurements...'):
             self.perform_measurement(wl, number_of_measurements)
         self.file_manager.save_buffer()
         

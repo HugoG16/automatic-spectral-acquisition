@@ -1,6 +1,9 @@
 import csv
 import os
+from time import localtime, strftime
+
 from automatic_spectral_acquisition.constants import *
+
 
 class FileManager:
     """Class to manage the output file for the spectral acquisition system.
@@ -15,7 +18,7 @@ class FileManager:
 
         Args:
             output_directory (str, optional): The directory to save the output file. Defaults to OUTPUT_DIRECTORY.
-            output_file (str, optional): The name of the output file. Defaults to OUTPUT_FILE.
+            output_file (str, optional): The name of the output file. Defaults to OUTPUT_FILE. {time} will be replaced by the current time.
             temp_directory (str, optional): The directory to save the temporary file. Defaults to TEMP_DIRECTORY.
             log_file (str, optional): The name of the log file. Defaults to LOG_FILE.
             output_header (list[str], optional): The header for the output file. Defaults to DEFAULT_HEADER.
@@ -30,6 +33,7 @@ class FileManager:
         if not os.path.exists(temp_directory):
             os.makedirs(temp_directory)
         
+        output_file.format(time=strftime(TIME_FORMAT, localtime()))
         self.output_file_directory = f'{output_directory}/{output_file}'
         self.log_file_directory = f'{temp_directory}/{log_file}'
         

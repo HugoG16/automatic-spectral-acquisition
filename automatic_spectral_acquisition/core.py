@@ -166,7 +166,13 @@ class Core:
             number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
         """
         logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} times.')
-        print('performing measurement - not implemented - missing oscilloscope')
+        
+        if IGNORE_REQUESTS:
+            from numpy import sin
+            measurement_avg = sin(wavelength*0.0628)
+            error_avg = 0.1
+            self.file_manager.add_buffer([wavelength, measurement_avg, error_avg])
+            return
         
         self.arduino.change_wavelength(wavelength)
         
@@ -285,12 +291,18 @@ class Core:
             self.cli_config_create()
             self.config_handler.save_config()
         
+        if IGNORE_CONNECTIONS:
+            info_message('Ignoring connections...', 'Information')
+            return
+        
         self.connect_arduino()
         self.connect_oscilloscope()
         
         
     def finalize(self) -> None: 
         """Disconnect from the Arduino and oscilloscope. Changes the position of the monochromator to the default position."""
+        if IGNORE_CONNECTIONS:
+            return
         self.arduino.disconnect()
         self.oscilloscope.disconnect()
         self.arduino.change_position(DEFAULT_POSITION)
@@ -317,6 +329,7 @@ class Core:
                             end:float, 
                             step:float, 
                             number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS,
+                            file:str=OUTPUT_FILE,
                             plot:bool=False) -> None:
         """Perform spectral acquisition. Used by the CLI.
 
@@ -325,14 +338,16 @@ class Core:
             end (float): The ending wavelength.
             step (float): The step size between measurements.
             number_of_measurements (int, optional): The number of measurements to take for each wavelength. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+            file (str, optional): The name of the output file. Defaults to OUTPUT_FILE.
             plot (bool, optional): Whether to plot the spectrum. Defaults to False.
         """
         self.check_parameters_spectrum(start, end, step, number_of_measurements)
         self.initialize()
+        self.file_manager.change_output_file_directory(file)
         self.record_spectrum(start, end, step, number_of_measurements)
         self.finalize()
         if plot:
-            plot_spectrum()
+            plot_spectrum(file)
     
     
     def cli_config_create(self) -> None:
@@ -389,12 +404,19 @@ class Core:
         
         
     def cli_config_calibrate(self) -> None:
-        """Calibrates the monochromator and updades the configuration file. Used by the CLI."""
+        """Calibrates the monochromator and updades the configuration file. Used by the CLI."""        
         if self.config_handler.check_config_exists():
             self.config_handler.load_config()
         else:
             error_message('Error', 'No configuration file found. Use "spectral config create".')
 
+        if IGNORE_REQUESTS:
+            info_message('Faking motor calibration...', 'Information')
+            self.config_handler.calibrate([350, 500, 650, 800, 950], CALIBRATION_POSITIONS)
+            self.config_handler.save_config()
+            info_message('Finished.', 'Information')
+            return
+        
         self.connect_arduino() # Connect to arduino
         
         info_message('Starting motor calibration...', 'Information')
@@ -409,4 +431,5 @@ class Core:
         
         self.config_handler.calibrate(wavelengths, CALIBRATION_POSITIONS)
         self.config_handler.save_config()
+        info_message('Finished.', 'Information')
     

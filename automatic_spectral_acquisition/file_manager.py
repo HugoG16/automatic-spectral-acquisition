@@ -24,7 +24,9 @@ class FileManager:
             output_header (list[str], optional): The header for the output file. Defaults to DEFAULT_HEADER.
         """
         self.output_directory = output_directory
+        self.output_file = output_file.format(time=strftime(TIME_FORMAT, localtime()))
         self.temp_directory = temp_directory
+        self.log_file = log_file
         self.output_header = output_header
         
         # Create directories if they do not exist
@@ -33,13 +35,17 @@ class FileManager:
         if not os.path.exists(temp_directory):
             os.makedirs(temp_directory)
         
-        output_file.format(time=strftime(TIME_FORMAT, localtime()))
-        self.output_file_directory = f'{output_directory}/{output_file}'
-        self.log_file_directory = f'{temp_directory}/{log_file}'
+        self.output_file_directory = f'{self.output_directory}/{self.output_file}'
+        self.log_file_directory = f'{self.temp_directory}/{self.log_file}'
         
         self.buffer : list[list[float|None]] = []
       
-        
+    
+    def change_output_file_directory(self, output_file:str) -> None:
+        self.output_file = output_file.format(time=strftime(TIME_FORMAT, localtime()))
+        self.output_file_directory = f'{self.output_directory}/{self.output_file}'
+    
+    
     def add_buffer(self, measurement:list[float|None]) -> None:
         """Add a measurement to the buffer.
 
@@ -66,7 +72,7 @@ class FileManager:
         """Load the output file into the buffer.
 
         Args:
-            file (str | None, optional): The path of the output file to load. Defaults to None.
+            file (str | None): The path of the output file to load. If None, it takes the value of self.output_file_directory.
 
         Returns:
             list[list[float]]: The loaded buffer as a list of lists of floats.

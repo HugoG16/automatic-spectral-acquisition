@@ -4,17 +4,19 @@ import numpy as np
 from automatic_spectral_acquisition.file_manager import FileManager
 
 
-def plot_spectrum(display:bool=True, 
-                  file_name:str='plot.png', 
+def plot_spectrum(data_file:str,
+                  display:bool=True, 
+                  plot_file_name:str|None=None, 
                   dpi:int=300) -> None:
-    """Plot recorded spectrum. Assumes DEFAULT_HEADER structure!
+    """Plot recorded spectrum.
 
     Args:
-        display (bool, optional): Whether to display the plot. Defaults to True. If false image will be saved instead.
-        file_name (str, optional): The name of the output file. Defaults to 'plot.png'.
+        data_file (str): The name of the data file.
+        display (bool, optional): Whether to display the plot. Defaults to True. If false, the image will be saved instead.
+        plot_file_name (str, optional): The name of the output file. Defaults to None.
         dpi (int, optional): The resolution of the output file. Defaults to 300.
     """
-    file_manager = FileManager()
+    file_manager = FileManager(output_file=data_file)
     file_manager.load_output()
     data = np.asarray(file_manager.get_buffer())
     data = np.transpose(data)
@@ -29,4 +31,4 @@ def plot_spectrum(display:bool=True,
     if display:
         plt.show()
     else:
-        plt.savefig(f'{file_manager.temp_directory}/{file_name}', dpi=dpi)
+        plt.savefig(f'{file_manager.temp_directory}/{plot_file_name}', dpi=dpi)

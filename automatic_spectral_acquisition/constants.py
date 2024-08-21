@@ -1,7 +1,7 @@
 ############################# Debug options #############################
 DEBUG:bool = False # Changes how exceptions are dealt with.
 IGNORE_CONNECTIONS:bool = False # Ignore connections and fakes parts in order to test the program without the hardware.
-IGNORE_REQUESTS:bool = True # Ignore requests.
+IGNORE_REQUESTS:bool = False # Ignore requests.
 
 ############################# Arduino connection #############################
 ARDUINO_BAUDRATE = 9600 # Baudrate for the arduino

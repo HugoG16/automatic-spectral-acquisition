@@ -54,13 +54,15 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
                  end:Annotated[float, Argument(help='End wavelength')],
                  step:Annotated[float, Argument(help='Step size')],
                  number_of_measurements:Annotated[int, Option('--number_of_measurements', '-n', help='Number of measurements')]=DEFAULT_NUMBER_OF_MEASUREMENTS,
-                 plot:Annotated[bool, Option('--plot', help='Plot spectrum afterwards')] = False):
+                 file:Annotated[str, Option('--file', '-f', help='Output file name')]=OUTPUT_FILE,
+                 plot:Annotated[bool, Option('--plot', '-p', help='Plot spectrum afterwards')]=False):
         """
         Record a spectrum.
-        If --plot is passed, the spectrum will be plotted after the measurements.
+        Using --file <file name> or -f <file name>, the name of the file can be chosen. \"{time}\" will be replaced by the current time.
+        If --plot or -p is passed, the spectrum will be plotted after the measurements.
         """
         core = Core()
-        core.cli_record_spectrum(start, end, step, number_of_measurements, plot)        
+        core.cli_record_spectrum(start, end, step, number_of_measurements, file, plot)        
         
         
     @app.command()

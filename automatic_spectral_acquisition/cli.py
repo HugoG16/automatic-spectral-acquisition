@@ -67,12 +67,14 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
         
     @app.command()
     def single(wavelength:Annotated[float, Argument(help='Wavelength to measure')],
-               number_of_measurements:Annotated[int, Option('--number_of_measurements', '-n', help='Number of measurements')]=DEFAULT_NUMBER_OF_MEASUREMENTS):
+               number_of_measurements:Annotated[int, Option('--number_of_measurements', '-n', help='Number of measurements')]=DEFAULT_NUMBER_OF_MEASUREMENTS,
+               file:Annotated[str, Option('--file', '-f', help='Output file name')]=OUTPUT_FILE,
+               print_:Annotated[bool, Option('--print', '-p', help='Print the values measured')]=False):
         """
         Measure a single wavelength.
         """
         core = Core()
-        core.cli_record_single(wavelength, number_of_measurements)
+        core.cli_record_single(wavelength, number_of_measurements, file, print_)
     
     app.add_typer(create_config_subcommands(), name='config')
     

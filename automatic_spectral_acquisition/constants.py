@@ -35,4 +35,4 @@ OUTPUT_FILE:str = 'output_{time}.csv' # Name of the output file. {time} will be 
 TIME_FORMAT:str = '%Y-%m-%d_%H-%M-%S' # Time format for the output file.
 LOG_FILE:str = 'log.txt' # Name of the log file.
 CONFIG_FILE:str = 'config.pkl' # Name of the configuration file.
-DEFAULT_HEADER:list[str]=['wavelength(nm)', 'voltage(mV)', 'uncertainty(mV)'] # Default header for the output file.
+DEFAULT_HEADER:list[str]=['wavelength(nm)', 'voltage(V)', 'uncertainty(V)'] # Default header for the output file.

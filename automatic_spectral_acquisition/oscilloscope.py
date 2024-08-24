@@ -99,11 +99,11 @@ class OscilloscopeStateMachine(StateMachine):
             return mean, std
     
     
-    # def on_complete(self, *args, **kwargs): # not complete - not needed for now
+    # def on_complete(self, *args, **kwargs): # not needed for now
     #     pass
     
     
-    def on_disconnect(self, *args, **kwargs): # not complete
+    def on_disconnect(self, *args, **kwargs):
         # Check if oscilloscope_instance is passed
         oscilloscope_instance:Oscilloscope = kwargs.get('oscilloscope_instance')
         if not isinstance(oscilloscope_instance, Oscilloscope):

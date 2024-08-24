@@ -289,11 +289,14 @@ class Core:
             self.config_handler.load_config()
         else:
             self.cli_config_create()
-            self.config_handler.save_config()
         
         if IGNORE_CONNECTIONS:
             info_message('Ignoring connections...', 'Information')
             return
+        
+        if self.config_handler.config.m is None or \
+           self.config_handler.config.c is None:
+            self.cli_config_calibrate()
         
         self.connect_arduino()
         self.connect_oscilloscope()
@@ -311,17 +314,26 @@ class Core:
     
     def cli_record_single(self, 
                       wavelength:float,
-                      number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
+                      number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS,
+                      file:str=OUTPUT_FILE,
+                      print_:bool=False) -> None:
         """Perform a single measurement. Used by the CLI.
 
         Args:
             wavelength (float): The wavelength to measure.
             number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+            file (str, optional): The name of the output file. Defaults to OUTPUT_FILE.
+            print_ (bool, optional): Whether to print the measurement. Defaults to False.
         """
         self.check_parameters_single(wavelength, number_of_measurements)
         self.initialize()
+        self.file_manager.change_output_file_directory(file)
         self.record_single(wavelength, number_of_measurements)
         self.finalize()
+        if print_:
+            print(f'[white]V(λ=[repr.number]{self.file_manager.buffer[0][0]:.2f}[/repr.number]nm) = '
+                  f'([repr.number]{self.file_manager.buffer[0][1]:.2f}[/repr.number] ± '
+                  f'[repr.number]{self.file_manager.buffer[0][2]:.2f}[/repr.number])V')
        
         
     def cli_record_spectrum(self, 

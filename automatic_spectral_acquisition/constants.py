@@ -1,18 +1,18 @@
 ############################# Debug options #############################
 DEBUG:bool = False # Changes how exceptions are dealt with.
-IGNORE_CONNECTIONS:bool = False # Ignore connections and fakes parts in order to test the program without the hardware.
-IGNORE_REQUESTS:bool = False # Ignore requests.
+IGNORE_CONNECTIONS:bool = True # Ignore connections and fakes parts in order to test the program without the hardware.
+IGNORE_REQUESTS:bool = True # Ignore requests.
 
 ############################# Arduino connection #############################
-ARDUINO_BAUDRATE = 9600 # Baudrate for the arduino
-ARDUINO_TIMEOUT = 0.1 # Timeout for the arduino
+ARDUINO_BAUDRATE:int = 9600 # Baudrate for the arduino
+ARDUINO_TIMEOUT:float = 0.1 # Timeout for the arduino
 
 ############################# Arduino commands #############################
-GOTO    = "GOTO"     # Send
-DONE    = "DONE"     # Receive - completed request
-INVALID = "INVALID"  # Receive - invalid request
-RUNNING = "RUNNING"  # Receive - motor is moving
-STOP    = "STOP"     # Receive - stop button was pressed
+GOTO:str = "GOTO" # Send
+DONE:str = "DONE" # Receive - completed request
+INVALID:str = "INVALID" # Receive - invalid request
+RUNNING:str = "RUNNING" # Receive - motor is moving
+STOP:str = "STOP" # Receive - stop button was pressed
 
 ############################# Oscilloscope settings #############################
 OSCILLOSCOPE_TIMEOUT:float = 1000 # Timeout for the oscilloscope (ms)
@@ -29,8 +29,8 @@ DEFAULT_POSITION:float = 0 # Default position for the motor.
 CALIBRATION_POSITIONS:list[float] = [-4000. ,-2000. , 0., 2000., 4000.] # Position of wavelengths used for calibration.
 
 ############################# File options #############################
-OUTPUT_DIRECTORY:str = 'automatic_spectral_acquisition/output' # Directory to save the output files.
-TEMP_DIRECTORY:str = 'automatic_spectral_acquisition/temp' # Directory to save the temporary files.
+OUTPUT_DIRECTORY:str = 'output' # Directory to save the output files.
+TEMP_DIRECTORY:str = 'temp' # Directory to save the temporary files.
 OUTPUT_FILE:str = 'output_{time}.csv' # Name of the output file. {time} will be replaced by the current time.
 TIME_FORMAT:str = '%Y-%m-%d_%H-%M-%S' # Time format for the output file.
 LOG_FILE:str = 'log.txt' # Name of the log file.

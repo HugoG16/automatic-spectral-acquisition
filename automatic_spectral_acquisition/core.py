@@ -289,11 +289,14 @@ class Core:
             self.config_handler.load_config()
         else:
             self.cli_config_create()
-            self.config_handler.save_config()
         
         if IGNORE_CONNECTIONS:
             info_message('Ignoring connections...', 'Information')
             return
+        
+        if self.config_handler.config.m is None or \
+           self.config_handler.config.c is None:
+            self.cli_config_calibrate()
         
         self.connect_arduino()
         self.connect_oscilloscope()

@@ -72,6 +72,8 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
                print_:Annotated[bool, Option('--print', '-p', help='Print the values measured')]=False):
         """
         Measure a single wavelength.
+        Using --file <file name> or -f <file name>, the name of the file can be chosen. \"{time}\" will be replaced by the current time.
+        If --print or -p is passed, the values will be printed after the measurement is complete.
         """
         core = Core()
         core.cli_record_single(wavelength, number_of_measurements, file, print_)

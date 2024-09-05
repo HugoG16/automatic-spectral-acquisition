@@ -78,6 +78,17 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
         core = Core()
         core.cli_record_single(wavelength, number_of_measurements, file, print_)
     
+    
+    @app.command()
+    def live(wavelength:Annotated[float, Argument(help='Wavelength to measure')],
+             delay:Annotated[float, Option('--delay', '-d', help='Delay between measurements')]=0.5):
+        """
+        Measure a single wavelength in real time.
+        """
+        core = Core()
+        core.cli_record_live(wavelength, delay)
+    
+    
     app.add_typer(create_config_subcommands(), name='config')
     
     

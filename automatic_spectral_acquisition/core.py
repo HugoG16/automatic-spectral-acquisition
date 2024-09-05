@@ -1,6 +1,7 @@
 import logging 
 import os
 import signal
+from time import sleep
 
 from rich import print
 from rich.progress import track
@@ -445,3 +446,16 @@ class Core:
         self.config_handler.save_config()
         info_message('Finished.', 'Information')
     
+    
+    def cli_record_live(self, wavelength:float, delay:float) -> None:
+        """Record a live spectrum. Used by the CLI."""
+        self.check_parameters_single(wavelength, 1)
+        self.initialize()
+        print(f'[white]V(λ=[repr.number]{wavelength:.2f}[/repr.number]nm) [V] =')
+        while True:
+            self.perform_measurement(wavelength, 1)
+            print(f'[white]'
+                  f'[repr.number]{self.file_manager.buffer[-1][1]:.2f}[/repr.number] ± '
+                  f'[repr.number]{self.file_manager.buffer[-1][2]:.2f}[/repr.number]')
+            sleep(delay)
+            

@@ -90,3 +90,12 @@ spectral single <wavelength> [options]
 - `-n <number of measurements>` is used to select how many measurements are taken and averaged for each wavelength
 - `-f <name of output file>` is used to change the name of the output file
 - `-p` if this options is present, the values measured will be printed on the terminal
+
+Use
+```
+spectral single <wavelength> [options]
+```
+to perform continuous measurements that are printed on the screen.
+
+`[options]` can contain:
+- `-d <delay>` changes the delay (in seconds) between measurements.

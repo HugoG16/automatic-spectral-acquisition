@@ -41,7 +41,7 @@ class Core:
         self.file_manager = FileManager(output_directory, output_file, temp_directory, log_file, output_header)
         
         # Setup logging
-        logging.basicConfig(level=logging.DEBUG,
+        logging.basicConfig(level=logging.INFO,
                             format='%(asctime)s - %(levelname)s - %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S',
                             filename=self.file_manager.log_file_directory,
@@ -152,6 +152,7 @@ class Core:
 
     def interrupt_handler(self, signum, frame) -> None:
         """Interrupt handler to stop the program safely."""
+        logging.info('Interrupt signal received. Exiting...')
         info_message('Interrupt signal received. Exiting...', 'Exit')
         self.finalize()
         exit()
@@ -166,7 +167,7 @@ class Core:
             wavelength (float): The wavelength to measure.
             number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
         """
-        logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} times.')
+        logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} time(s).')
         
         if IGNORE_REQUESTS:
             from numpy import sin
@@ -200,12 +201,14 @@ class Core:
         """Connect to the Arduino."""
         self.arduino = Arduino(self.config_handler)
         self.arduino.connect()
+        logging.info('Connected to Arduino.')
      
          
     def connect_oscilloscope(self) -> None:
         """Connect to the oscilloscope."""
         self.oscilloscope = Oscilloscope(self.config_handler)
         self.oscilloscope.connect()
+        logging.info('Connected to oscilloscope.')
        
         
     def get_arduino_port(self) -> str:
@@ -307,9 +310,9 @@ class Core:
         """Disconnect from the Arduino and oscilloscope. Changes the position of the monochromator to the default position."""
         if IGNORE_CONNECTIONS:
             return
-        self.arduino.disconnect()
-        self.oscilloscope.disconnect()
-        self.arduino.change_position(DEFAULT_POSITION)
+        self.arduino.change_position(DEFAULT_POSITION); logging.info('Changed position back to default.')
+        self.arduino.disconnect(); logging.info('Disconnected from Arduino.')
+        self.oscilloscope.disconnect(); logging.info('Disconnected from oscilloscope.')
         
 ########################### cli commands ###########################
     

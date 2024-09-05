@@ -1,6 +1,7 @@
 import logging 
 import os
 import signal
+from time import sleep
 
 from rich import print
 from rich.progress import track
@@ -40,7 +41,7 @@ class Core:
         self.file_manager = FileManager(output_directory, output_file, temp_directory, log_file, output_header)
         
         # Setup logging
-        logging.basicConfig(level=logging.DEBUG,
+        logging.basicConfig(level=logging.INFO,
                             format='%(asctime)s - %(levelname)s - %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S',
                             filename=self.file_manager.log_file_directory,
@@ -151,6 +152,7 @@ class Core:
 
     def interrupt_handler(self, signum, frame) -> None:
         """Interrupt handler to stop the program safely."""
+        logging.info('Interrupt signal received. Exiting...')
         info_message('Interrupt signal received. Exiting...', 'Exit')
         self.finalize()
         exit()
@@ -165,7 +167,7 @@ class Core:
             wavelength (float): The wavelength to measure.
             number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
         """
-        logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} times.')
+        logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} time(s).')
         
         if IGNORE_REQUESTS:
             from numpy import sin
@@ -199,12 +201,14 @@ class Core:
         """Connect to the Arduino."""
         self.arduino = Arduino(self.config_handler)
         self.arduino.connect()
+        logging.info('Connected to Arduino.')
      
          
     def connect_oscilloscope(self) -> None:
         """Connect to the oscilloscope."""
         self.oscilloscope = Oscilloscope(self.config_handler)
         self.oscilloscope.connect()
+        logging.info('Connected to oscilloscope.')
        
         
     def get_arduino_port(self) -> str:
@@ -302,13 +306,14 @@ class Core:
         self.connect_oscilloscope()
         
         
-    def finalize(self) -> None: 
+    def finalize(self, keep_position=False) -> None: 
         """Disconnect from the Arduino and oscilloscope. Changes the position of the monochromator to the default position."""
         if IGNORE_CONNECTIONS:
             return
-        self.arduino.disconnect()
-        self.oscilloscope.disconnect()
-        self.arduino.change_position(DEFAULT_POSITION)
+        if not keep_position:
+            self.arduino.change_position(DEFAULT_POSITION); logging.info('Changed position back to default.')
+        self.arduino.disconnect(); logging.info('Disconnected from Arduino.')
+        self.oscilloscope.disconnect(); logging.info('Disconnected from oscilloscope.')
         
 ########################### cli commands ###########################
     
@@ -445,3 +450,24 @@ class Core:
         self.config_handler.save_config()
         info_message('Finished.', 'Information')
     
+    
+    def cli_record_live(self, wavelength:float, delay:float) -> None:
+        """Record a live spectrum. Used by the CLI."""
+        self.check_parameters_single(wavelength, 1)
+        self.initialize()
+        print(f'[white]V(λ=[repr.number]{wavelength:.2f}[/repr.number]nm) [V] =')
+        while True:
+            self.perform_measurement(wavelength, 1)
+            print(f'[white]'
+                  f'[repr.number]{self.file_manager.buffer[-1][1]:.2f}[/repr.number] ± '
+                  f'[repr.number]{self.file_manager.buffer[-1][2]:.2f}[/repr.number]')
+            sleep(delay)
+    
+    
+    def cli_move_to(self, position:float) -> None:
+        """Move the monochromator motor to a specific position. Used by the CLI."""
+        self.initialize()
+        self.arduino.change_position(position)
+        self.finalize(keep_position=True)
+        logging.info(f'Moved motor to position {position}. The motor will not return to default position.')
+        info_message(f'Moved motor to position {position}.', 'Information')

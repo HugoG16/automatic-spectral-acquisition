@@ -306,11 +306,12 @@ class Core:
         self.connect_oscilloscope()
         
         
-    def finalize(self) -> None: 
+    def finalize(self, keep_position=False) -> None: 
         """Disconnect from the Arduino and oscilloscope. Changes the position of the monochromator to the default position."""
         if IGNORE_CONNECTIONS:
             return
-        self.arduino.change_position(DEFAULT_POSITION); logging.info('Changed position back to default.')
+        if not keep_position:
+            self.arduino.change_position(DEFAULT_POSITION); logging.info('Changed position back to default.')
         self.arduino.disconnect(); logging.info('Disconnected from Arduino.')
         self.oscilloscope.disconnect(); logging.info('Disconnected from oscilloscope.')
         
@@ -461,4 +462,12 @@ class Core:
                   f'[repr.number]{self.file_manager.buffer[-1][1]:.2f}[/repr.number] ± '
                   f'[repr.number]{self.file_manager.buffer[-1][2]:.2f}[/repr.number]')
             sleep(delay)
-            
+    
+    
+    def cli_move_to(self, position:float) -> None:
+        """Move the monochromator motor to a specific position. Used by the CLI."""
+        self.initialize()
+        self.arduino.change_position(position)
+        self.finalize(keep_position=True)
+        logging.info(f'Moved motor to position {position}. The motor will not return to default position.')
+        info_message(f'Moved motor to position {position}.', 'Information')

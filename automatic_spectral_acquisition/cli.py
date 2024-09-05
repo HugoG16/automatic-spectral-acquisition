@@ -89,6 +89,15 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
         core.cli_record_live(wavelength, delay)
     
     
+    @app.command()
+    def moveto(position:Annotated[float, Argument(help='Position to move to')]):
+        """
+        Move the motor to a specific position. Be careful with this command to not exceed the physical limits of the monochromator!
+        """
+        core = Core()
+        core.cli_move_to(position)
+    
+    
     app.add_typer(create_config_subcommands(), name='config')
     
     

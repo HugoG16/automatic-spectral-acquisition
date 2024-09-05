@@ -32,7 +32,7 @@ An initial calibration is necessary for setting the `DEFAULT_POSITION` (default=
  1. Define a default position and a default wavelength. Ideally `DEFAULT_POSITION=0` and a wavelength in the middle of the available range, e.g., 650 nm.
  2. Select a set of wavelengths (e.g.: [350, 500, 650, 800, 950] nm)
  3. Manually set the monochromator to the default wavelength and start the Arduino code.
- 3. Find the associated position by trial and error. Use these values to populate `CALIBRATION_POSITIONS`.
+ 3. Find the associated position by trial and error with `spectral moveto <position>`. Use these values to populate `CALIBRATION_POSITIONS`.
 
 As long as the following measurements conclude successfully, redefining these constants won't be necessary. Even if there is some problem and the motor doesn't return to the default position, if `DEFAULT_POSITION=0`, the monochromator can be manually set to the default wavelength associated with the default position to return to normal functionality.
 

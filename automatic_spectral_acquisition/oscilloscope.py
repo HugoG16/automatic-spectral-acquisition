@@ -84,13 +84,13 @@ class OscilloscopeStateMachine(StateMachine):
             mean, std = oscilloscope_instance._get_measurements(wave, *oscilloscope_instance._get_settings())
             vertical_scale = float(oscilloscope_instance.oscilloscope_connection.query('CH1:SCAle?'))
 
-            if np.any(np.abs(wave)>4*vertical_scale) and oscilloscope_instance.v_scale_index < len(OSCILLOSCOPE_SCALES)-1:
+            if np.mean(np.abs(wave)>3*vertical_scale)>=0.9 and oscilloscope_instance.v_scale_index < len(OSCILLOSCOPE_SCALES)-1:
                 oscilloscope_instance.v_scale_index += 1
                 vertical_scale = OSCILLOSCOPE_SCALES[oscilloscope_instance.v_scale_index]
                 oscilloscope_instance.oscilloscope_connection.write(f'CH1:SCAle {vertical_scale}')
                 continue
 
-            if np.all(np.abs(wave)<0.5*vertical_scale) and oscilloscope_instance.v_scale_index > 0:
+            if np.mean(np.abs(wave)<0.5*vertical_scale)>=0.9 and oscilloscope_instance.v_scale_index > 0:
                 oscilloscope_instance.v_scale_index -= 1
                 vertical_scale = OSCILLOSCOPE_SCALES[oscilloscope_instance.v_scale_index]
                 oscilloscope_instance.oscilloscope_connection.write(f'CH1:SCAle {vertical_scale}')

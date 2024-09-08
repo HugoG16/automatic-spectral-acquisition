@@ -28,7 +28,7 @@ class ArduinoStateMachine(StateMachine):
     request = connected.to(requested) | completed.to(requested)
     wait = requested.to.itself()
     complete = requested.to(completed)
-    disconnect = completed.to(disconnected)
+    disconnect = completed.to(disconnected) | connected.to(disconnected)
     
     # Define transition actions
     def on_connect(self, *args, **kwargs):
@@ -75,7 +75,7 @@ class ArduinoStateMachine(StateMachine):
         if not isinstance(arduino_instance, Arduino):
             error_message('TypeError', 'Arduino object not passed.')
 
-        arduino_instance.arduino_connection.write(bytes(f'{GOTO} {position}~', 'UTF-8'))
+        arduino_instance.arduino_connection.write(bytes(f'{GOTO} {int(position)}~', 'UTF-8'))
         
         
     def on_wait(self, *args, **kwargs):

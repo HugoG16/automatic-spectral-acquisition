@@ -67,8 +67,8 @@ class ArduinoStateMachine(StateMachine):
         
         # Check if position is passed
         position:float = kwargs.get('position')
-        if not isinstance(position, float):
-            error_message('TypeError', 'Position not passed or not a float.')
+        if not isinstance(position, int):
+            error_message('TypeError', 'Position not passed or not a int.')
         
         # Check if arduino_instance is passed
         arduino_instance:Arduino = kwargs.get('arduino_instance')
@@ -158,17 +158,17 @@ class Arduino:
         Args:
             wavelength (float): The desired wavelength.
         """
-        self._send('request', position=self.config_handler.position(wavelength),
+        self._send('request', position=int(self.config_handler.position(wavelength)),
                    arduino_instance=self)
         self._send('wait', arduino_instance=self)
         self._send('complete')
     
     
-    def change_position(self, position:float) -> None:
+    def change_position(self, position:int) -> None:
         """Change the position of the monochromator.
 
         Args:
-            position (float): The desired position.
+            position (int): The desired position.
         """
         self._send('request', position=position, arduino_instance=self)
         self._send('wait', arduino_instance=self)

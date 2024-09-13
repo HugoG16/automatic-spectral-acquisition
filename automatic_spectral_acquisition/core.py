@@ -8,6 +8,7 @@ from rich.progress import track
 import pyinputplus as pyin
 
 from automatic_spectral_acquisition.arduino import Arduino
+from automatic_spectral_acquisition.arduino_adc import ArduinoADC
 from automatic_spectral_acquisition.oscilloscope import Oscilloscope
 from automatic_spectral_acquisition.file_manager import FileManager
 from automatic_spectral_acquisition.config import ConfigHandler
@@ -48,9 +49,14 @@ class Core:
                             filemode='w')
         
         # create the rest of the class instances
-        self.config_handler = ConfigHandler(arduino_port, oscilloscope_port, m, c, wavelengths, positions)
-        self.arduino = Arduino(self.config_handler)
-        self.oscilloscope = Oscilloscope(self.config_handler)
+        self.config_handler:ConfigHandler = ConfigHandler(arduino_port, oscilloscope_port, m, c, wavelengths, positions)
+        
+        if USE_ADC:
+            self.arduino:ArduinoADC = ArduinoADC(self.config_handler)
+        else:
+            self.arduino:Arduino = Arduino(self.config_handler)
+            
+        self.oscilloscope:Oscilloscope = Oscilloscope(self.config_handler)
     
     
     @staticmethod
@@ -177,29 +183,36 @@ class Core:
             return
         
         self.arduino.change_wavelength(wavelength)
+        sleep(0.1)
         
-        measurements = []
-        errors = []
-        
-        for _ in range(number_of_measurements):
-            measurement, error = self.oscilloscope.get_measurement()
-            measurements.append(measurement)
-            errors.append(error)
-        
-        if len(measurements)==0 or len(errors)==0:
-            info_message('No measurements were taken.', 'Information')
-            measurement_avg = None
-            error_avg = None
+        if USE_ADC:
+            measurement_avg, error_avg = self.arduino.get_measurement(number_of_measurements)
         else:
-            measurement_avg = sum(measurements) / number_of_measurements
-            error_avg = sum(errors) / number_of_measurements
+            measurements = []
+            errors = []
+            
+            for _ in range(number_of_measurements):
+                measurement, error = self.oscilloscope.get_measurement()
+                measurements.append(measurement)
+                errors.append(error)
+            
+            if len(measurements)==0 or len(errors)==0:
+                info_message('No measurements were taken.', 'Information')
+                measurement_avg = None
+                error_avg = None
+            else:
+                measurement_avg = sum(measurements) / number_of_measurements
+                error_avg = sum(errors) / number_of_measurements
         
         self.file_manager.add_buffer([wavelength, measurement_avg, error_avg])
     
     
     def connect_arduino(self) -> None:
         """Connect to the Arduino."""
-        self.arduino = Arduino(self.config_handler)
+        if USE_ADC:
+            self.arduino:ArduinoADC = ArduinoADC(self.config_handler)
+        else:
+            self.arduino:Arduino = Arduino(self.config_handler)
         self.arduino.connect()
         logging.info('Connected to Arduino.')
      
@@ -237,20 +250,23 @@ class Core:
         return arduino_port
      
      
-    def get_oscilloscope_port(self) -> str:
+    def get_oscilloscope_port(self) -> str|None:
         """Get the oscilloscope port from the user."""
         instruments = self.config_handler.list_pyvisa_instruments()
         if len(instruments) == 0:
             error_message('Error', 'No instrument was detected.')
 
         oscilloscope_port = pyin.inputMenu(prompt='Select the oscilloscope port:\n', 
-                                           choices=instruments+('Exit',), 
+                                           choices=instruments+('None', 'Exit'), 
                                            numbered=True)
         
         if oscilloscope_port == 'Exit':
             info_message('Configuration not saved.', 'Exit')
             exit()
-            
+        
+        if oscilloscope_port == 'None':
+            return None
+        
         return oscilloscope_port
 
 
@@ -303,7 +319,8 @@ class Core:
             self.cli_config_calibrate()
         
         self.connect_arduino()
-        self.connect_oscilloscope()
+        if not USE_ADC:
+            self.connect_oscilloscope()
         
         
     def finalize(self, keep_position=False) -> None: 
@@ -313,7 +330,8 @@ class Core:
         if not keep_position:
             self.arduino.change_position(DEFAULT_POSITION); logging.info('Changed position back to default.')
         self.arduino.disconnect(); logging.info('Disconnected from Arduino.')
-        self.oscilloscope.disconnect(); logging.info('Disconnected from oscilloscope.')
+        if not USE_ADC:
+            self.oscilloscope.disconnect(); logging.info('Disconnected from oscilloscope.')
         
 ########################### cli commands ###########################
     
@@ -364,7 +382,7 @@ class Core:
         self.record_spectrum(start, end, step, number_of_measurements)
         self.finalize()
         if plot:
-            plot_spectrum(file)
+            plot_spectrum(self.file_manager.output_file)
     
     
     def cli_config_create(self) -> None:
@@ -448,6 +466,10 @@ class Core:
         
         self.config_handler.calibrate(wavelengths, CALIBRATION_POSITIONS)
         self.config_handler.save_config()
+        
+        info_message('Resetting motor position...', 'Information')
+        self.arduino.change_position(DEFAULT_POSITION)
+        
         info_message('Finished.', 'Information')
     
     

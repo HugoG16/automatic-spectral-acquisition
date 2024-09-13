@@ -110,7 +110,7 @@ spectral single <wavelength> [options]
 
 Use
 ```
-spectral single <wavelength> [options]
+spectral live <wavelength> [options]
 ```
 To perform continuous measurements that are printed on the screen.
 

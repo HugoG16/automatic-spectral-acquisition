@@ -3,13 +3,20 @@
 Python command line interface for the automatic data acquisition of spectral data. Connects to an Arduino running a custom program and to an oscilloscope. 
 
 
-## Setup
+## Experimental setup
 
-An Arduino running the code on `arduino_code.ino` is connected to a stepper motor controller (using a DVR8825 breakout board driver). The stepper motor is connected to a manual monochromator with a timing belt and two gears.
-For the detection, a PMT is connected to an oscilloscope.
-Both of these components can then be controlled using this CLI.
+An Arduino running the code on `arduino_code.ino` ([GitHub repository](https://github.com/HugoG16/automatic-spectral-acquisition)) is connected to a stepper motor controller (using a DVR8825 breakout board driver). The stepper motor is connected to a manual monochromator with a timing belt and two gears.
+For the detection, a PMT is connected to an oscilloscope **or** an ADC (MCP3421).
+All components can then be controlled using this CLI.
+
+Experimental setup when using the oscilloscope:
 <p align="center">
 <img src="https://github.com/HugoG16/automatic-spectral-acquisition/blob/main/images/setup_schematic.png?raw=true)" width=60%>
+</p>
+
+Experimental setup when using the ADC:
+<p align="center">
+<img src="https://github.com/HugoG16/automatic-spectral-acquisition/blob/main/images/setup_schematic_adc.png?raw=true)" width=60%>
 </p>
 
 The diagram for the stepper motor controller is shown next. 
@@ -18,6 +25,11 @@ The diagram for the stepper motor controller is shown next.
 <img src="https://github.com/HugoG16/automatic-spectral-acquisition/blob/main/images/circuit_diagram.png?raw=true)" width=60%>
 </p>
 
+The diagram for the ADC board is:
+
+<p align="center">
+<img src="https://github.com/HugoG16/automatic-spectral-acquisition/blob/main/images/circuit_diagram_adc.png?raw=true)" width=60%>
+</p>
 
 ## Installation
 
@@ -43,12 +55,17 @@ At the end of a measurement, the motor will return to the default position to gu
 The calibration parameters are saved to a file and can be reused for every measurement. However, it is recommended to recalibrate the system every session.
 
 
+## Options
+The options for the program are contained in the file `automatic_spectral_acquisition\constants.py` and should be edited when necessary.
+You can select whether you are using an oscilloscope or the ADC.
+
+
 ## How to use
 
 To call the program, use the command `spectral`.
 To get help using the CLI, use the command `spectral --help` or `spectral <subcommand> --help`.
 
-To create a configuration file use
+To create a configuration file, use
 ```
 spectal config create
 ```
@@ -95,7 +112,7 @@ Use
 ```
 spectral single <wavelength> [options]
 ```
-to perform continuous measurements that are printed on the screen.
+To perform continuous measurements that are printed on the screen.
 
 `[options]` can contain:
 - `-d <delay>` changes the delay (in seconds) between measurements.

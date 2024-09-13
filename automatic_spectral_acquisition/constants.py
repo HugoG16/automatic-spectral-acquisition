@@ -3,9 +3,10 @@ DEBUG:bool = False # Changes how exceptions are dealt with.
 IGNORE_CONNECTIONS:bool = False # Ignore connections and fakes parts in order to test the program without the hardware.
 IGNORE_REQUESTS:bool = False # Ignore requests.
 
-############################# Arduino connection #############################
+############################# Arduino settings #############################
 ARDUINO_BAUDRATE:int = 9600 # Baudrate for the arduino
 ARDUINO_TIMEOUT:float = 0.1 # Timeout for the arduino
+USE_ADC:bool = True # Use the ADC for measurements instead of the oscilloscope
 
 ############################# Arduino commands #############################
 GOTO:str = "GOTO" # Send - move motor to position
@@ -14,6 +15,7 @@ DONE:str = "DONE" # Receive - completed request
 INVALID:str = "INVALID" # Receive - invalid request
 RUNNING:str = "RUNNING" # Receive - motor is moving
 STOP:str = "STOP" # Receive - stop button was pressed
+ERROR:str = "ERROR" # Receive - error occurred when using ADC
 
 ############################# Oscilloscope settings #############################
 OSCILLOSCOPE_TIMEOUT:float = 1000 # Timeout for the oscilloscope (ms)
@@ -36,4 +38,7 @@ OUTPUT_FILE:str = 'output_{time}.csv' # Name of the output file. {time} will be 
 TIME_FORMAT:str = '%Y-%m-%d_%H-%M-%S' # Time format for the output file.
 LOG_FILE:str = 'log.txt' # Name of the log file.
 CONFIG_FILE:str = 'config.pkl' # Name of the configuration file.
-DEFAULT_HEADER:list[str]=['wavelength(nm)', 'voltage(V)', 'uncertainty(V)'] # Default header for the output file.
+if USE_ADC: # Default header for the output file.
+    DEFAULT_HEADER:list[str]=['wavelength(nm)', 'voltage(au)', 'uncertainty(au)']
+else:
+    DEFAULT_HEADER:list[str]=['wavelength(nm)', 'voltage(V)', 'uncertainty(V)']

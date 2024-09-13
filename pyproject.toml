@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "automatic-spectral-acquisition"
-version = "0.1.4"
+version = "0.2"
 description = "Python interface for the automatic data acquisition of spectral data."
 authors = ["HugoG16 <hugo.c.gomes@tecnico.ulisboa.pt>"]
 readme = "README.md"

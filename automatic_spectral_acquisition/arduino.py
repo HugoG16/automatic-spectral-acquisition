@@ -66,7 +66,7 @@ class ArduinoStateMachine(StateMachine):
             return
         
         # Check if position is passed
-        position:float = kwargs.get('position')
+        position:int = kwargs.get('position')
         if not isinstance(position, int):
             error_message('TypeError', 'Position not passed or not a int.')
         

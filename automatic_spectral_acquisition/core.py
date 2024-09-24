@@ -166,12 +166,16 @@ class Core:
     
     def perform_measurement(self,
                             wavelength:float, 
-                            number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
+                            number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS,
+                            change_wavelength:bool=True,
+                            measurement_label:str|float|None=None) -> None:
         """Perform a measurement at a specific wavelength.
 
         Args:
             wavelength (float): The wavelength to measure.
             number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+            change_wavelength (bool, optional): Whether to move the monochromator to the specified wavelength. Defaults to True.
+            measurement_label (str|float|None, optional): The label for the measurement. Defaults to wavelength.
         """
         logging.info(f'Performing measurement at wavelength {wavelength:.2f}nm {number_of_measurements} time(s).')
         
@@ -182,8 +186,9 @@ class Core:
             self.file_manager.add_buffer([wavelength, measurement_avg, error_avg])
             return
         
-        self.arduino.change_wavelength(wavelength)
-        sleep(0.1)
+        if change_wavelength:
+            self.arduino.change_wavelength(wavelength)
+            sleep(0.1)
         
         if USE_ADC:
             measurement_avg, error_avg = self.arduino.get_measurement(number_of_measurements)
@@ -204,7 +209,10 @@ class Core:
                 measurement_avg = sum(measurements) / number_of_measurements
                 error_avg = sum(errors) / number_of_measurements
         
-        self.file_manager.add_buffer([wavelength, measurement_avg, error_avg])
+        if measurement_label is None:
+            measurement_label = wavelength
+        
+        self.file_manager.add_buffer([measurement_label, measurement_avg, error_avg])
     
     
     def connect_arduino(self) -> None:
@@ -300,7 +308,30 @@ class Core:
         for wl in track(wavelengths, description='Performing measurements...'):
             self.perform_measurement(wl, number_of_measurements)
         self.file_manager.save_buffer()
+
+
+    def external_sweep(self, wavelength:float, number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS) -> None:
+        """Perform an external sweep for a single wavelength.
+
+        Args:
+            wavelength (float): The wavelength to measure.
+            number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+        """
+        self.arduino.change_wavelength(wavelength)
+        sleep(0.1)
         
+        self.file_manager.output_header[0] = pyin.inputStr(prompt='Enter the name of the parameter to sweep over: ')
+        info_message('Leave the value blank to stop the sweep.', 'Information')
+        
+        while True:
+            parameter_value = pyin.inputFloat(prompt='Enter the value for the parameter: ', blank=True)
+            if type(parameter_value) == str:
+                break
+                
+            self.perform_measurement(wavelength, number_of_measurements, change_wavelength=False, measurement_label=parameter_value)
+            
+        self.file_manager.save_buffer()
+      
         
     def initialize(self) -> None:
         """Load the configuration and connect to the Arduino and oscilloscope."""
@@ -383,6 +414,24 @@ class Core:
         self.finalize()
         if plot:
             plot_spectrum(self.file_manager.output_file)
+    
+    
+    def cli_external_sweep(self,
+                           wavelength:float,
+                           number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS,
+                           file:str=OUTPUT_FILE) -> None:
+        """Perform an external sweep for a single wavelength. Used by the CLI.
+
+        Args:
+            wavelength (float): The wavelength to measure.
+            number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+            file (str, optional): The name of the output file. Defaults to OUTPUT_FILE.
+        """
+        self.check_parameters_single(wavelength, number_of_measurements)
+        self.initialize()
+        self.file_manager.change_output_file_directory(file)
+        self.external_sweep(wavelength, number_of_measurements)
+        self.finalize()
     
     
     def cli_config_create(self) -> None:
@@ -475,11 +524,11 @@ class Core:
     
     def cli_record_live(self, wavelength:float, delay:float) -> None:
         """Record a live spectrum. Used by the CLI."""
-        self.check_parameters_single(wavelength, 1)
+        self.check_parameters_single(wavelength, DEFAULT_NUMBER_OF_MEASUREMENTS)
         self.initialize()
         print(f'[white]V(λ=[repr.number]{wavelength:.2f}[/repr.number]nm) [V] =')
         while True:
-            self.perform_measurement(wavelength, 1)
+            self.perform_measurement(wavelength, DEFAULT_NUMBER_OF_MEASUREMENTS)
             print(f'[white]'
                   f'[repr.number]{self.file_manager.buffer[-1][1]:.2f}[/repr.number] ± '
                   f'[repr.number]{self.file_manager.buffer[-1][2]:.2f}[/repr.number]')

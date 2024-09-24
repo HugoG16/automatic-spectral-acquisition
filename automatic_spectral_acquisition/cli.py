@@ -98,6 +98,18 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
         core.cli_move_to(position)
     
     
+    @app.command()
+    def extsweep(wavelength:Annotated[float, Argument(help='Wavelength to measure')],
+                 number_of_measurements:Annotated[int, Option('--number_of_measurements', '-n', help='Number of measurements')]=DEFAULT_NUMBER_OF_MEASUREMENTS,
+                 file:Annotated[str, Option('--file', '-f', help='Output file name')]=OUTPUT_FILE):
+        """
+        Perform an external sweep for a single wavelength.
+        Using --file <file name> or -f <file name>, the name of the file can be chosen. \"{time}\" will be replaced by the current time.
+        """
+        core = Core()
+        core.cli_external_sweep(wavelength, number_of_measurements, file) 
+        
+        
     app.add_typer(create_config_subcommands(), name='config')
     
     

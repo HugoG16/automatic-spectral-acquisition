@@ -161,6 +161,8 @@ class Core:
         logging.info('Interrupt signal received. Exiting...')
         info_message('Interrupt signal received. Exiting...', 'Exit')
         self.finalize()
+        logging.info('Finished.')
+        info_message('Finished.', 'Exit')
         exit()
     
     
@@ -527,12 +529,16 @@ class Core:
         self.check_parameters_single(wavelength, DEFAULT_NUMBER_OF_MEASUREMENTS)
         self.initialize()
         print(f'[white]V(λ=[repr.number]{wavelength:.2f}[/repr.number]nm) [V] =')
-        while True:
-            self.perform_measurement(wavelength, DEFAULT_NUMBER_OF_MEASUREMENTS)
-            print(f'[white]'
-                  f'[repr.number]{self.file_manager.buffer[-1][1]:.2f}[/repr.number] ± '
-                  f'[repr.number]{self.file_manager.buffer[-1][2]:.2f}[/repr.number]')
-            sleep(delay)
+        # while True:
+        try:
+            while True:
+                self.perform_measurement(wavelength, DEFAULT_NUMBER_OF_MEASUREMENTS)
+                print(f'[white]'
+                    f'[repr.number]{self.file_manager.buffer[-1][1]:.2f}[/repr.number] ± '
+                    f'[repr.number]{self.file_manager.buffer[-1][2]:.2f}[/repr.number]')
+                sleep(delay)
+        except KeyboardInterrupt:
+            self.interrupt_handler(None, None)
     
     
     def cli_move_to(self, position:float) -> None:

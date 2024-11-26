@@ -26,7 +26,7 @@ OSCILLOSCOPE_SCALES = [5.e-3, 10.e-3, 20.e-3, 50.e-3, 100.e-3, 200.e-3, 500.e-3,
 
 ############################# Measurements options #############################
 DEFAULT_NUMBER_OF_MEASUREMENTS:int = 3 # Default number of measurements to take for take for each wavelength.
-WAVELENGTH_MIN:float = 200 # Minimum wavelength that can be measured.
+WAVELENGTH_MIN:float = 180 # Minimum wavelength that can be measured.
 WAVELENGTH_MAX:float = 1040 # Maximum wavelength that can be measured.
 DEFAULT_POSITION:int = 0 # Default position for the motor.
 CALIBRATION_POSITIONS:list[int] = [-7194 ,-3597 , 0, 3597, 7194] # Position of wavelengths used for calibration.

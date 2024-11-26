@@ -531,14 +531,45 @@ class Core:
         print(f'[white]V(λ=[repr.number]{wavelength:.2f}[/repr.number]nm) [V] =')
         # while True:
         try:
-            while True:
+            for i in range(200):
                 self.perform_measurement(wavelength, DEFAULT_NUMBER_OF_MEASUREMENTS)
                 print(f'[white]'
                     f'[repr.number]{self.file_manager.buffer[-1][1]:.2f}[/repr.number] ± '
                     f'[repr.number]{self.file_manager.buffer[-1][2]:.2f}[/repr.number]')
                 sleep(delay)
+            self.finalize()
         except KeyboardInterrupt:
             self.interrupt_handler(None, None)
+    
+    
+    def cli_record_periodically(self, 
+                                wavelength:float,
+                                delay:float,
+                                number_of_times:int,
+                                number_of_measurements:int=DEFAULT_NUMBER_OF_MEASUREMENTS,
+                                file:str=OUTPUT_FILE,
+                                plot:bool=False) -> None:
+        """Record measurements periodically. Used by the CLI.
+        
+        Args:
+            wavelength (float): The wavelength to measure.
+            delay (float): The delay between measurements.
+            number_of_measurements (int, optional): The number of measurements to take. Defaults to DEFAULT_NUMBER_OF_MEASUREMENTS.
+            file (str, optional): The name of the output file. Defaults to OUTPUT_FILE.
+            plot (bool, optional): Whether to plot the resulting data. Defaults to False.
+        """
+        self.check_parameters_single(wavelength, number_of_measurements)
+        self.initialize()
+        self.file_manager.change_output_file_directory(file)
+        
+        for i in track(list(range(number_of_times)), description='Performing measurements...'):
+            self.perform_measurement(wavelength, number_of_measurements)
+            sleep(delay)
+        self.file_manager.save_buffer()
+        
+        self.finalize()
+        if plot:
+            plot_spectrum(self.file_manager.output_file)
     
     
     def cli_move_to(self, position:float) -> None:

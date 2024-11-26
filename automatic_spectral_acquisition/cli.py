@@ -81,12 +81,29 @@ def create_app(app_name:str='Spectral data acquisition') -> Typer:
     
     @app.command()
     def live(wavelength:Annotated[float, Argument(help='Wavelength to measure')],
-             delay:Annotated[float, Option('--delay', '-d', help='Delay between measurements')]=0.5):
+             delay:Annotated[float, Option('--delay', '-d', help='Delay between measurements (s)')]=0.5):
         """
         Measure a single wavelength in real time.
         """
         core = Core()
         core.cli_record_live(wavelength, delay)
+        
+    
+    @app.command()
+    def periodically(wavelength:Annotated[float, Argument(help='Wavelength to measure')],
+                    delay:Annotated[float, Option('--delay', '-d', help='Delay between measurements (s)')],
+                    number_of_times:Annotated[int, Option('--number_of_times', '-m', help='Number of times to measure')],
+                    number_of_measurements:Annotated[int, Option('--number_of_measurements', '-n', help='Number of measurements')]=DEFAULT_NUMBER_OF_MEASUREMENTS,
+                    file:Annotated[str, Option('--file', '-f', help='Output file name')]=OUTPUT_FILE,
+                    plot:Annotated[bool, Option('--plot', '-p', help='Plot values afterwards')]=False):
+        """
+        Measure a single wavelength periodically.
+        Using --file <file name> or -f <file name>, the name of the file can be chosen. \"{time}\" will be replaced by the current time.
+        If --plot or -p is passed, the values will be plotted after the measurements.
+        """
+        
+        core = Core()
+        core.cli_record_periodically(wavelength, delay, number_of_times, number_of_measurements, file, plot)
     
     
     @app.command()
